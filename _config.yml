@@ -1,6 +1,5 @@
-title: "Maram Nouri_Aiin Bio381"
-  logo; /assets/img/Tini_headshot.jpg
-  left:
-      description: text below image
-      show_downloads: true
-      theme: jekyll-theme-minimal
+title: Shaw Talebi
+
+#description: text below image
+show_downloads: true
+theme: jekyll-theme-minimal
