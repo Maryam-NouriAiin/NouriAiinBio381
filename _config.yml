@@ -1,0 +1,11 @@
+title: "Maram Nouri_Aiin Bio381"
+  logo; /assets/img/Tini_headshot.jpg
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html
+      logo: /assets/img/headshot_circle.png
+      description: text below image
+      show downloads: true
+      theme: jekyll-theme-minimal
