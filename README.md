@@ -1,20 +1,15 @@
 # Computational Biology
 
-#### Assignemts
+<div style="background-color:#440154FF; color: #fff; padding: 10px; border-radius: 5px;">
+  <p> ***Assignment*** </p> </div>
 
-Assignment #2 [link](homework-2.html)
+Assignment #2 [link](homework-2.html) January 24
+Assignment #3 [link](homework-3.html) January 31
 
-## Education
-- Ph.D., Physics | The University of Texas at Dallas (_May 2022_)								       		
-- M.S., Physics	| The University of Texas at Dallas (_December 2019_)	 			        		
-- B.S., Physics | The University of Texas at Dallas (_May 2017_)
 
-## Work Experience
-**Data Scientist @ Toyota Financial Services (_June 2022 - Present_)**
-- Uncovered and corrected missing step in production data pipeline which impacted over 70% of active accounts
-- Redeveloped loan originations model which resulted in 50% improvement in model performance and saving 1 million dollars in potential losses
-
-**Data Science Consultant @ Shawhin Talebi Ventures LLC (_December 2020 - Present_)**
-- Conducted data collection, processing, and analysis for novel study evaluating the impact of over 300 biometrics variables on human performance in hyper-realistic, live-fire training scenarios
-- Applied unsupervised deep learning approaches to longitudinal ICU data to discover novel sepsis sub-phenotypes
-
+<div style="background-color:#440154FF; color: #fff; padding: 10px; border-radius: 5px;">
+  <p> ***Class notes*** </p> </div>
+  
+  Regular Expressions [link](FirstMarkdown_23Jan2024.html)
+  Regular Expressions [link](FirstRScript_25Jan2024.R)
+  
