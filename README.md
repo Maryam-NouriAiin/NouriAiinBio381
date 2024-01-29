@@ -10,6 +10,6 @@ Assignment #3 [link](homework-3.html) January 31
 <div style="background-color:#440154FF; color: #fff; padding: 10px; border-radius: 5px;">
   <p>Class notes</p> </div>
   
-- Markdown[link](FirstMarkdown_23Jan2024.html)
+- Markdown [link](FirstMarkdown_23Jan2024.html)
 - Regular Expressions [link](FirstRScript_25Jan2024.R)
   
