@@ -2,5 +2,5 @@ title: "Maram Nouri_Aiin Bio381"
   logo; /assets/img/Tini_headshot.jpg
   left:
       description: text below image
-      show downloads: true
+      show_downloads: true
       theme: jekyll-theme-minimal
