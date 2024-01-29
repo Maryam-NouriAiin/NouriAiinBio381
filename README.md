@@ -5,7 +5,7 @@ This is where I'll be posting my homework assignments and projects for the cours
 
 
 
-<div style="background-color:"#00333"; color: #fff; padding: 10px; border-radius: 5px;">
+<div style="background-color:#0033; color: #fff; padding: 10px; border-radius: 5px;">
   <p>Assignment</p> </div>
 
 - [Assignment #2](homework-2.html) January 24, 2024
@@ -18,7 +18,7 @@ This is where I'll be posting my homework assignments and projects for the cours
 
 
 
-<div style="background-color:'#666699"; color: #fff; padding: 10px; border-radius: 5px;">
+<div style="background-color:#666699; color: #fff; padding: 10px; border-radius: 5px;">
   <p>Class notes</p> </div>
   
 - [Markdown](FirstMarkdown_23Jan2024.html)
