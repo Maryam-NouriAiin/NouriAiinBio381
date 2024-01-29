@@ -2,7 +2,7 @@
 
 #### Assignemts
 
-Assignment #2 [link](homework-1.html)
+Assignment #2 [link](homework-2.html)
 
 ## Education
 - Ph.D., Physics | The University of Texas at Dallas (_May 2022_)								       		
