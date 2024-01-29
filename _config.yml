@@ -1,5 +1,6 @@
 title: Maryam NouriAiin
 logo: /assets/img/tini_headshot.png
-#description: text below image
-show_downloads: true
+description: Welcome to my GitHub repository/portfolio for the Computational Biology course! 
+
+show_downloads: false
 theme: jekyll-theme-minimal
