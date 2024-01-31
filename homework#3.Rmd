@@ -1,0 +1,294 @@
+---
+title: "homework#3"
+author: "Maryam Nouri-Aiin"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+
+# ***Question 1***
+Question: The primary reason for using Excel to set up data frames is that people like to have the columns aligned. However, if there are not too many columns, it may be faster to do the job in a plain text editor first and align the columns with tabs. In your text editor, type in (or copy and paste from here) the following lines of text:
+Don’t worry about how many tab spaces are needed to set this up, just make sure the columns are aligned. Now, using a single regular expression, transform these lines into what we need for a proper .csv file:
+
+```
+STRING: First String    Second      1.22      3.4
+Second          More Text   1.555555  2.2220
+Third           x           3         124
+
+SEARCH: \s{2,}
+REPLACE: ,
+RESULT: 
+First String,Second,1.22,3.4
+Second,More Text,1.555555,2.2220
+Third,x,3,124
+```
+### Explanation:
+
+*Regular Expression:* 
+
+\s{2,}: To find instances of two or more consecutive spaces or tabs 
+
+*Replacement pattern:*
+
+,: To replace it with a singke ,
+
+
+
+# ***Question 2***
+Question: A True Regex Story. I am preparing a collaborative NSF grant with a colleague at another university. One of the pieces of an NSF grant is a listing of potential conflicts of interest. NSF wants to know the first and last name of the collaborator and their institution.
+Here are a few lines of my conflict list:
+However, my collaborator asked me to please provide to her the list in this format:
+Write a single regular expression that will make the change.
+
+```
+STRING: 
+Ballif, Bryan, University of Vermont
+Ellison, Aaron, Harvard Forest
+Record, Sydne, Bryn Mawr
+
+SEARCH: (\w+), (\w+), (\w+ \w+ *\w*)
+REPLACE: \2 \1 (\3)
+RESULT: 
+Bryan Ballif (University of Vermont)
+Aaron Ellison (Harvard Forest)
+Sydne Record (Bryn Mawr)
+```
+
+### Explannation:
+
+*Regular Expression:*
+
+(\w+): to capture the first name and assigns it to capture group 1.
+
+, : to match the comma and space between the first and second words.
+
+(\w+): to capture the last name and assigns it to capture group 2.
+
+, : to match the comma and space between the second and third words.
+
+(\w+ \w+ *\w*): to capture the third set of words (institution or affiliation) and assigns it to capture group 3.
+
+*Replacement pattern:*
+
+\2 \1 (\3): to rearrange the captured groups to form a new string format. It puts the last name (from capture group 2) first, followed by the first name (from capture group 1), and then encloses the third set of words (from capture group 3) in parentheses.
+
+
+# ***Question 3***
+Question: A Second True Regex Story. A few weeks ago, at Radio Bean’s Sunday afternoon old-time music session, one of the mandolin players gave me a DVD with over 1000 historic recordings of old-time fiddle tunes.
+The list of tunes (shown here as a single line of text) looks like this:
+Unfortunately, in this form, you can’t re-order the file names to put them in alphabetical order. I thought I could just strip out the leading numbers, but this will cause a conflict, because, for wildly popular tunes such as “Shove That Pig’s Foot A Little Further In The Fire”, there are multiple copies somewhere in the list.
+
+All of these files are on a single line, so first write a regular expression to place each file name on its own line:
+
+```
+STRING: 
+0001 Georgia Horseshoe.mp3 0002 Billy In The Lowground.mp3 0003 Winder Slide.mp3 0004 Walking Cane.mp3
+
+SEARCH: (\d{4})
+REPLACE: \n \1
+RESULT: 
+ 0001 Georgia Horseshoe.mp3 
+ 0002 Billy In The Lowground.mp3 
+ 0003 Winder Slide.mp3 
+ 0004 Walking Cane.mp3
+```
+
+
+### Explannation:
+
+*Regular Expression:*
+
+(\d{4}): To capture group (()) that matches exactly four digits (\d). The curly braces {4} specify the exact number of occurrences (in this case, four digits).
+
+*Replacement pattern:*
+
+\n: To show a newline character.
+
+\1: To refer to the content captured by the first (and only) capturing group in the regular expression.
+
+
+# ***Question 4***
+Question: Now write a regular expression to grab the four digit number and put it at the end of the title:
+
+
+```
+STRING: 
+ 0001 Georgia Horseshoe.mp3 
+ 0002 Billy In The Lowground.mp3 
+ 0003 Winder Slide.mp3 
+ 0004 Walking Cane.mp3
+
+SEARCH: (\d{4})(\s\w+\s+\w+\s*\w*\s*\w*)\.(\w+)
+REPLACE: \2_\1.\3
+RESULT: 
+ Georgia Horseshoe_0001.mp3
+ Billy In The Lowground_0002.mp3
+ Winder Slide_0003.mp3
+ Walking Cane_0004.mp3
+```
+
+### Explannation:
+
+*Regular Expression:*
+
+(\d{4}): To capture exactly four digits.
+
+(\s\w+\s+\w+\s*\w*\s*\w*): To capture a sequence of words with optional spaces between them.
+
+\.(\w+): To capture a dot followed by one or more word characters (file extension).
+
+*Replacement Pattern:*
+
+\2_\1.\3: This rearranges the captured groups from the regular expression, placing the second group (sequence of words) before the first group (four digits), separated by an underscore, and followed by the original file extension.
+
+
+# ***Question 5***
+Question: Here is a data frame with genus, species, and two numeric variables.Write a single regular expression to rearrange the data set like this, 
+
+```
+STRING: 
+Camponotus,pennsylvanicus,10.2,44
+Camponotus,herculeanus,10.5,3
+Myrmica,punctiventris,12.2,4
+Lasius,neoniger,3.3,55
+
+SEARCH: (\w)\w+,(\w+),(\d*.\d),(\d*)
+REPLACE: \1_\2,\4
+RESULT: 
+C_pennsylvanicus,44
+C_herculeanus,3
+M_punctiventris,4
+L_neoniger,55
+```
+
+
+### Explannation:
+
+*Regular Expression:*
+
+(\w): To capture the first character of a word.
+
+\w+: To match one or more word characters.
+
+,: Matches the comma separating the fields.
+
+(\w+): To capture the next word.
+
+(\d*.\d): To capture a decimal number.
+
+(\d*): To capture an integer.
+
+*Replacement Pattern:*
+
+\1: The first captured group, which is the first character of the first word.
+
+_: Adds an underscore.
+
+\2: The second captured group, which is the second word.
+
+,: Adds a comma.
+
+\4: The fourth captured group, which is the last field (either an integer or a decimal).
+
+# ***Question 6***
+Question: Beginning with the original data set, rearrange it to abbreviate the species name like this:
+
+```
+STRING: 
+Camponotus,pennsylvanicus,10.2,44
+Camponotus,herculeanus,10.5,3
+Myrmica,punctiventris,12.2,4
+Lasius,neoniger,3.3,55
+
+SEARCH: (\w)\w+,(\w{1,4})\w+,([\d.]+),(\d+)
+REPLACE: $1_$2,$4
+RESULT: 
+C_penn,44
+C_herc,3
+M_punc,4
+L_neon,55
+```
+
+
+### Explannation:
+
+*Regular Expression:*
+
+(\w): To capture the first character of a word.
+
+\w+: To match one or more word characters.
+
+,: To match the comma separating the fields.
+
+(\w{1,4}): To capture one to four word characters (second word).
+
+\w+: To match one or more word characters.
+
+,: To match the comma separating the fields.
+
+([\d.]+): To capture one or more digits or dots (decimal number).
+
+,: To match the comma separating the fields.
+
+(\d+): To capture one or more digits (integer).
+
+*Replacement Pattern:*
+
+$1: The first captured group, which is the first character of the first word.
+
+_: Adds an underscore.
+
+$2: The second captured group, which is the one to four characters of the second word.
+
+,: Adds a comma.
+
+$4: The fourth captured group, which is the last field (integer).
+
+# ***Question 7***
+Question: Beginning with the original data set, rearrange it so that the species and genus names are fused with the first 3 letters of each, followed by the two columns of numerical data in reversed order:
+
+```
+STRING: 
+Camponotus,pennsylvanicus,10.2,44
+Camponotus,herculeanus,10.5,3
+Myrmica,punctiventris,12.2,4
+Lasius,neoniger,3.3,55
+
+SEARCH: (\w{1,3})\w+,(\w{1,3})\w+,([\d.]+),(\d+)
+REPLACE: \1\2, \4, \3 
+RESULT: 
+Campen, 44, 10.2
+Camher, 3, 10.5
+Myrpun, 4, 12.2
+Lasneo, 55, 3.3
+```
+
+
+### Explannation:
+
+*Regular Expression:*
+
+(\w{1,3}): To capture one to three word characters (first and second words).
+
+\w+: To match one or more word characters.
+
+,: To match the comma separating the fields.
+
+([\d.]+): To capture one or more digits or dots (decimal number).
+
+,: To match the comma separating the fields.
+
+(\d+): To capture one or more digits (integer).
+
+*Replacement Pattern:*
+\1: The first captured group, which is one to three characters of the first word.
+
+\2: The second captured group, which is one to three characters of the second word.
+
+, : Adds a comma and space.
+
+\4: The fourth captured group, which is the last field (integer).
+
+, : Adds a comma and space.
+
+\3: The third captured group, which is the decimal number.
