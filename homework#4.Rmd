@@ -1,0 +1,134 @@
+---
+title: "homewrok #4"
+author: "Maryam NouriAiin"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme:
+      bg: "#ffff"
+      fg: "#0000"
+      primary: "#EA80FC"
+      secondary: "#00DAC6"
+      base_font:
+        google: Lato
+      heading_font:
+        google: Montserrat
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Suppose x = 1.1, a = 2.2, and b = 3.3. Assign each expression to the value of the variable z and print the value stored in z.
+
+```{r echo=TRUE}
+# Assigning values to the variables
+x = 1.1
+a = 2.2
+b = 3.3
+# Assigning each expression to the value of the variable z
+z= x^a^b
+z
+z= (x^a)^b
+z
+z= (3*x^3)+(2*x^2)+1
+z
+```
+
+Using the rep and seq functions, create the following vectors:
+
+(1,2,3,4,5,6,7,8,7,6,5,4,3,2,1)
+(1,2,2,3,3,3,4,4,4,4,5,5,5,5,5)
+(5,4,4,3,3,3,2,2,2,2,1,1,1,1,1)
+
+
+```{r echo=TRUE}
+my_vec1 <- c(seq(1:8), seq(from=7, to=1))
+print(my_vec1)
+
+
+my_vec2<- seq(1:5)
+my_vec2 <- rep(x=my_vec2,times=my_vec2) 
+my_vec2
+
+
+my_vec3 <- seq(5:1)
+my_vec3 <- rep(x=my_vec3,times=my_vec3) 
+my_vec3
+```
+
+Create a vector of two random uniform numbers. In a spatial map, these can be interpreted as x and y coordinates that give the location of an individual (such as a marked forest tree in a plot that has been mapped). Using one of R’s inverse trigonometry functions (asin(), acos(), or atan()), convert these numbers into polar coordinates (If you don’t know what polar coordinates are, read about them on the web here, here, or in your calculus textbook).
+
+```{r echo=TRUE}
+# Generate two random uniform numbers between 0 and 1
+ran_num <- runif(2)
+
+# x and y coordinates
+x <- ran_num[1]
+x
+y <- ran_num[2]
+y
+# Convert x and y coordinates to polar coordinates
+r <- sqrt(x^2 + y^2) 
+r
+theta <- atan2(y, x)
+theta
+# Print the original coordinates and polar coordinates
+print(paste("x:", x))
+
+print(paste("y:", y))
+
+print("Polar Coordinates:")
+
+print(paste("Radius (r):", r))
+
+print(paste("Angle (theta) in radians:", theta))
+```
+
+Create a vector queue <- c("sheep", "fox", "owl", "ant") where queue represents the animals that are lined up to enter Noah’s Ark, with the sheep at the front of the line. Using R expressions, update queue as:
+
+the serpent arrives and gets in line;
+the sheep enters the ark;
+the donkey arrives and talks his way to the front of the line;
+the serpent gets impatient and leaves;
+the owl gets bored and leaves;
+the aphid arrives and the ant invites him to cut in line.
+Finally, determine the position of the aphid in the line.
+
+```{r echo=TRUE}
+# Create the original queue 
+queue1 <- c("sheep", "fox", "owl", "ant")
+print(queue1)
+# the serpent arrives and gets in line
+queue2 <- c(queue1, "serpent")
+print(queue2)
+# the sheep enters the ark
+queue3 <- queue2[-1]
+print(queue3)
+# the donkey arrives and talks his way to the front of the line
+queue4 <- c("donkey", queue3)
+print(queue4)
+# the serpent gets impatient and leaves
+queue5 <- queue4[queue4 != "serpent"]
+print(queue5)
+# the owl gets bored and leaves
+queue6 <- queue5[queue5 != "owl"]
+print(queue6)
+# the aphid arrives and the ant invites him to cut in line
+position_ant <- which(queue6 == "ant")
+queue7 <- c(queue6[1:position_ant], "aphid", queue6[(position_ant + 1):length(queue6)])
+print(queue7)
+
+# Determine the position of the aphid in the line
+position_of_aphid <- which(queue7 == "aphid")
+print(queue7)
+print(paste("Position of aphid in line:", position_of_aphid))
+```
+
+Use R to create a vector of all of the integers from 1 to 100 that are not divisible by 2, 3, or 7. You will need one of the arithmetic operators on this cheat sheet.
+
+```{r echo=TRUE}
+z<- seq(100)
+filtered_z <- z[!(z %% 2 == 0 | z %% 3 == 0 | z %% 7 == 0)]
+print(filtered_z)
+```
