@@ -1,0 +1,7 @@
+# comments at the top
+# beaucoup metadata
+ID,Treatment,Biomass,Notes
+1,Control,30.3,
+2,HighN,13,
+3,HighN,NA,broken scale
+4,Conrol,35.5,

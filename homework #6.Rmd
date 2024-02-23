@@ -1,0 +1,215 @@
+---
+title: 'homework #6'
+author: "Maryam NouriAiin"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme:
+      bg: "#ffff"
+      fg: "#0000"
+      primary: "#EA80FC"
+      secondary: "#00DAC6"
+      base_font:
+        google: Lato
+      heading_font:
+        google: Montserrat
+---
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+library(ggplot2)
+library(MASS)
+library(tidyverse)
+
+# Read CSV file into 'bumb' dataframe, specifying ',' as the separator, and treating lines starting with '#' as comments
+bumb <- read.csv("Burnham_field_data_bombus_seasonal_variation_Dataset.csv", sep=",", comment.char='#')
+
+# Display the structure of the 'bumb' dataframe (types and preview of the data)
+str(bumb)
+
+# Generate summary statistics for the 'bumb' dataframe
+summary(bumb)
+
+# Remove rows with any NA values from 'bumb' and update 'bumb'
+bumb <- na.omit(bumb)
+
+# Create a new variable 'myvar' in 'bumb' dataframe, copying the values from 'pathogen_load'
+bumb$myvar <- bumb$pathogen_load
+
+# Generate summary statistics for the updated 'bumb' dataframe
+summary(bumb)
+
+# Plot a histogram of 'myvar' using ggplot2, with specified aesthetics and histogram style
+ggplot(bumb, aes(x=myvar, y=after_stat(density))) +
+  geom_histogram(color="grey60", fill="cornsilk", size= 0.2)
+
+# Count the number of entries in 'pathogen_load' that are greater than 0
+sum(bumb$pathogen_load > 0)
+
+# Filter 'bumb' to keep only rows where 'pathogen_load' is greater than 0, and update 'myvar' to be the log of 'pathogen_load'
+bumb <- bumb %>% filter(pathogen_load > 0) %>%
+  mutate(myvar = log(pathogen_load))
+
+# Plot a histogram of the updated 'myvar' with specified aesthetics and histogram style
+p1 <- ggplot(bumb, aes(x=myvar, y=after_stat(density))) +
+  geom_histogram(color="grey60", fill="cornsilk", size= 0.2)
+
+# Count again after filtering and updating 'bumb'
+sum(bumb$pathogen_load > 0)
+
+# Print the histogram plot stored in 'p1'
+p1
+
+# Add a density plot with dotted lines to 'p1' and update 'p1'
+p1 <- p1 + geom_density(linetype="dotted", size=0.75)
+
+# Print the updated plot 'p1'
+print(p1)
+
+# Fit a normal distribution to 'myvar' in 'bumb' and store the parameters in 'normPars'
+normPars <- fitdistr(bumb$myvar, "normal")
+
+# Print the parameters of the fitted normal distribution
+print(normPars)
+
+# Display the structure of 'normPars' (to understand its components)
+str(normPars)
+
+# Extract the mean estimate from 'normPars'
+normPars$estimate["mean"] # access a named attribute
+
+# Plot normal probability density
+meanML <- normPars$estimate["mean"]
+sdML <- normPars$estimate["sd"]
+
+# Set up a sequence of x values from 0 to the maximum of 'myvar' for plotting the normal probability density function
+xval <- seq(0, max(bumb$myvar), len=length(bumb$myvar))
+
+# Print the sequence of x values
+xval
+
+# Define a statistical transformation to apply the normal density function for plotting, specifying mean and sd from 'normPars'
+stat <- stat_function(aes(x = xval, y = ..y..), fun = dnorm, colour = "red", n = length(bumb$myvar), args = list(mean = meanML, sd = sdML))
+
+# Add the statistical transformation to plot 'p1' and display it
+p1 + stat
+
+
+# Fit an exponential distribution to 'myvar' in 'bumb' and store the parameters
+expoPars <- fitdistr(bumb$myvar, "exponential")
+# Extract the rate parameter from the fitted exponential distribution
+rateML <- expoPars$estimate["rate"]
+
+# Plot exponential probability density function over the histogram
+stat2 <- stat_function(aes(x = xval, y = ..y..), fun = dexp, colour="blue", n = length(bumb$myvar), args = list(rate = rateML))
+# Add the exponential density plot to the previous plot
+p1 + stat + stat2
+
+# Plot uniform probability density function over the histogram
+stat3 <- stat_function(aes(x = xval, y = ..y..), fun = dunif, colour="darkgreen", n = length(bumb$myvar), args = list(min = min(bumb$myvar), max = max(bumb$myvar)))
+# Add the uniform density plot to the previous plots
+p1 + stat + stat2 + stat3
+
+# Fit a gamma distribution to 'myvar' and store the parameters
+gammaPars <- fitdistr(bumb$myvar, "gamma")
+# Extract the shape and rate parameters from the fitted gamma distribution
+shapeML <- gammaPars$estimate["shape"]
+rateML <- gammaPars$estimate["rate"]
+
+# Plot gamma probability density function over the histogram
+stat4 <- stat_function(aes(x = xval, y = ..y..), fun = dgamma, colour="brown", n = length(bumb$myvar), args = list(shape = shapeML, rate = rateML))
+# Add the gamma density plot to the previous plots
+p1 + stat + stat2 + stat3 + stat4
+
+# For plotting beta probability density, adjust 'myvar' to be within [0,1] range
+pSpecial <- ggplot(data = bumb, aes(x = bumb$myvar / (max(bumb$myvar) + 0.1), y = ..density..)) +
+  geom_histogram(color="grey60", fill="cornsilk", size=0.2) + 
+  xlim(c(0, 1)) +
+  geom_density(size=0.75, linetype="dotted")
+
+# Fit a beta distribution with initial shape parameters and normalize 'myvar' for the beta distribution
+betaPars <- fitdistr(x = bumb$myvar / max(bumb$myvar + 0.1), start = list(shape1 = 1, shape2 = 2), "beta")
+# Extract shape parameters from the fitted beta distribution
+shape1ML <- betaPars$estimate["shape1"]
+shape2ML <- betaPars$estimate["shape2"]
+
+# Plot beta probability density function over the histogram with adjusted 'myvar'
+statSpecial <- stat_function(aes(x = xval, y = ..y..), fun = dbeta, colour="orchid", n = length(bumb$myvar), args = list(shape1 = shape1ML, shape2 = shape2ML))
+# Add the beta density plot to the adjusted histogram
+pSpecial + statSpecial
+
+# Simulate new data based on the normal distribution with parameters from 'fitdistr'
+simData <- rnorm(n = length(bumb$myvar), mean = meanML, sd = sdML)
+
+# Plot histogram of original data with density curve and customize appearance
+p1 <- ggplot(data = bumb, aes(x = myvar)) +
+  geom_histogram(aes(y = ..density..), color = "grey60", fill = "cornsilk", bins = 30) +
+  geom_density(color = "blue", size = 1) +
+  ggtitle("Original Data") +
+  theme_minimal() +
+  xlim(c(7, 30)) 
+
+# Plot histogram of simulated data with density curve and customize appearance
+p2 <- ggplot(data.frame(simData), aes(x = simData)) +
+  geom_histogram(aes(y = ..density..), color = "grey60", fill = "lightblue", bins = 30) +
+  geom_density(color = "red", size = 1) +
+  ggtitle("Simulated Data") + 
+  theme_minimal() +
+  xlim(c(7, 30)) 
+
+# Print the histograms for original and simulated data
+print(p1)
+print(p2)
+
+# myvar variable is clearly skewed to the right  
+# I also tried shapiro test to test for myvar variable normality distribution:
+shapiro.test(bumb$myvar)
+
+# 	Shapiro-Wilk normality test
+# data:  bumb$myvar
+# W = 0.92471, p-value = 3.484e-14
+# This means the test rejects the hypothesis of normal distribution
+
+# I also used Kolmogorov-Smirnov (K-S) test to check if gamma distribution is the best fit:
+ks.test(bumb$myvar, "pgamma", shape = shapeML, rate = rateML)
+
+# Asymptotic one-sample Kolmogorov-Smirnov test
+# data:  bumb$myvar
+# D = 0.063777, p-value = 0.05269
+# alternative hypothesis: two-sided
+# This p-value is slightly above the the significant level, which means it does not reject the null hypothesis of gamma distribtuion being the best fit, however it not a very strong evidence since it is very close to 0.05
+
+# Simulate new data based on the gamma distribution with parameters from 'fitdistr'
+simulatedData <- rgamma(n = length(bumb$myvar), shape = shapeML, rate = rateML)
+
+# Plot histogram for original data  with density curve and customize appearance
+p3 <- ggplot(bumb, aes(x=myvar)) +
+  geom_histogram(aes(y=..density..), color="grey60", fill="cornsilk", bins=30) +
+  stat_function(fun= dgamma, args=list(shape=shapeML, rate=rateML), color="red", size=1) +
+  ggtitle("Original Data with Gamma Distribution") +
+  theme_minimal() +
+  xlim(c(7, 30)) 
+
+# Plot histogram for simulated data with gamma distribution and customize appearance
+p4 <- ggplot(data.frame(simulatedData), aes(x=simulatedData)) +
+  geom_histogram(aes(y=..density..), color="grey60", fill="skyblue", bins=30) +
+  stat_function(fun= dgamma, args=list(shape=shapeML, rate=rateML), color="red", size=1) +
+  ggtitle("Simulated Data with Gamma Distribution") +
+  theme_minimal() +
+  xlim(c(7, 30)) 
+
+
+
+print(p3)
+print(p4)
+```
+
+
+#### How do the two histogram profiles compare? Do you think the model is doing a good job of simulating realistic data that match your original measurements? Why or why not?
+
+The gamma distribution seems to be the best fit to MyVar variable in bumble bee data set. It is positively skewed, with all observations being positive and  there are more occurrences of lower values than higher ones. I also used Kolmogorov-Smirnov (K-S) test to examin if gamma distriution is the best fit. The p-value was 0.052 which was really _close_ to reject gamma distribution. When simulated, it looked more like a normal distribution, but still slightly skewed to the righ which I think can be explained by the marginal p-value of K-S test. I concluded that even if gamma shows to be best fit for this variabl, it is not but it is not the strogest to reject the null hpothesis of K-S test.
+
+
+
+

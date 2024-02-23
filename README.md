@@ -11,6 +11,7 @@ This is where I'll be posting my homework assignments and projects for the cours
 - [Assignment #3](homework-3.html) January 31, 2024
 - [Assignment #4](homework-4.html) February 7, 2024
 - [Assignment #5](homework-5.html) February 14, 2024
+- [Assignment #6](homework--6.html) February 21, 2024
 
 
 <div style="background-color:#cbccbc; color: #000; padding: 10px; border-radius: 5px;">
@@ -22,4 +23,6 @@ This is where I'll be posting my homework assignments and projects for the cours
 - [Atomic Vector l](AtomicVectorI_01Feb2024.R) February 1, 2024
 - [Atomic Vector ll](AttomicVectorII_6Feb2024.R) February 6, 2024
 - [Metrics List Data Frames](MetricsListDataFrames_8Feb2024.R) February 8, 2024
+- [Curating Data](CuratingData_22Feb2024.R) February 22, 2024
   
+
