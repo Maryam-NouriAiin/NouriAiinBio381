@@ -1,0 +1,51 @@
+---
+title: 'homework #6'
+author: "Maryam NouriAiin"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme:
+      bg: "#ffff"
+      fg: "#0000"
+      primary: "#EA80FC"
+      secondary: "#00DAC6"
+      base_font:
+        google: Lato
+      heading_font:
+        google: Montserrat
+---
+
+Think about an ongoing study in your lab (or a paper you have read in a different class), and decide on a pattern that you might expect in your experiment if a specific hypothesis were true.
+
+To start simply, assume that the data in each of your treatment groups follow a normal distribution. Specify the sample sizes, means, and variances for each group that would be reasonable if your hypothesis were true. You may need to consult some previous literature and/or an expert in the field to come up with these numbers.
+
+
+
+I am thinking of a bioassay I ran on Colorado Potato Beetles to investigate mortality in their population using entomopathogenic fungi.
+
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}library(ggplot2)
+library(dplyr)
+
+set.seed(42) # For reproducibility
+
+# Defining parameters: 
+
+n = 10  # Sample size for each group
+means = [6, 60, 90]  # Means for control, treatment group 1, and treatment group 2
+sds = [2, 5, 5]  # Standard deviations for each group
+groups = ['Control', 'Treatment 1', 'Treatment 2']
+variances = [sd**2 for sd in sds]
+
+
+simData <- rnorm(n = length(bumb$myvar), mean = meanML, sd = sdML)
+
+```
+
+
+Using the methods we have covered in class, write code to create a random data set that has these attributes. Organize these data into a data frame with the appropriate structure.
+
+
+
+
