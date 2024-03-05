@@ -15,37 +15,343 @@ output:
         google: Montserrat
 ---
 
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
 Think about an ongoing study in your lab (or a paper you have read in a different class), and decide on a pattern that you might expect in your experiment if a specific hypothesis were true.
 
 To start simply, assume that the data in each of your treatment groups follow a normal distribution. Specify the sample sizes, means, and variances for each group that would be reasonable if your hypothesis were true. You may need to consult some previous literature and/or an expert in the field to come up with these numbers.
 
 
-
-I am thinking of a bioassay I ran on Colorado Potato Beetles to investigate mortality in their population using entomopathogenic fungi.
-
-
-
-```{r echo=TRUE, message=FALSE, warning=FALSE}library(ggplot2)
-library(dplyr)
-
-set.seed(42) # For reproducibility
-
-# Defining parameters: 
-
-n = 10  # Sample size for each group
-means = [6, 60, 90]  # Means for control, treatment group 1, and treatment group 2
-sds = [2, 5, 5]  # Standard deviations for each group
-groups = ['Control', 'Treatment 1', 'Treatment 2']
-variances = [sd**2 for sd in sds]
+```{}
+Topic: the effect of temperature on the development time of a particular insect species. 
+Hypothesis: higher temperatures lead to faster development times in the insect species under study.
+Experimental design: two treatment groups including one group exposed to a higher temperature and another group exposed to a lower temperature.
 
 
-simData <- rnorm(n = length(bumb$myvar), mean = meanML, sd = sdML)
+- Higher Temperature Group:
+  - Sample size: 30
+  - Mean development time: 10 days
+  - Variance: 1.5
 
+- Lower Temperature Group:
+  - Sample size: 30
+  - Mean development time: 15 days
+  - Variance: 2.0
 ```
 
 
 Using the methods we have covered in class, write code to create a random data set that has these attributes. Organize these data into a data frame with the appropriate structure.
 
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, msssages=FALSE}
+
+library(ggplot2)
+library(dplyr)
+library(MASS)
+library(tidyverse)
+library(pwr)
+library(pwrss)
+library(gridExtra)
+
+# Set seed for reproducibility
+#set.seed(123)
+
+# Generate random data for the higher temperature group
+hightemp <- data.frame(
+  development_time = rnorm(30, mean = 10, sd = sqrt(1.5))
+)
+#print(hightemp)
+# Generate random data for the lower temperature group
+lowtemp <- data.frame(
+  development_time = rnorm(30, mean = 15, sd = sqrt(2.0))
+)
+#print(lowtemp)
+# Add a group column to identify the temperature group
+hightemp$group <- "Higher Temperature"
+#print(hightemp)
+lowtemp$group <- "Lower Temperature"
+#print(lowtemp)
+
+# Combine the data frames into a single data frame
+insect_data <- rbind(hightemp, lowtemp)
+
+# Print the first few rows of the data frame
+print(head(insect_data))
+
+```
+
+
+Now write code to analyze the data (probably as an ANOVA or regression analysis), but possibly as a logistic regression or contingency table analysis. Write code to generate a useful graph of the data.
+
+
+
+```{r echo=TRUE, warning=FALSE}
+#  ANOVA
+anova <- aov(insect_data$development_time ~ insect_data$group, data = insect_data)
+summary(anova)
+
+# Create a box plot
+boxplot <- ggplot(insect_data, aes(x = group, y = development_time, fill = group)) +
+  geom_boxplot() +
+  labs(title = "Development Time of Insects at Different Temperatures",
+       x = "Temperature Group",
+       y = "Development Time (days)") +
+  theme_minimal()
+
+# Display the box plot
+print(boxplot)
+```
+
+Try running your analysis multiple times to get a feeling for how variable the results are with the same parameters, but different sets of random numbers.
+
+```{r }
+# Different run p-value and F value changes by rerunning the same codes:
+# run #1
+# pval = <2e-16 ***
+# Fval= 190
+# # run #2
+# pval = <2e-16 ***
+# Fval = 319
+
+##### or
+results <- list()
+# Set the number of iterations
+num_iterations <- 6
+
+# Initialize a vector to store the ANOVA p-values
+p_values <- numeric(num_iterations)
+
+for (i in 1:num_iterations) {
+  # Generate a new random dataset
+  set.seed(i) # Set a different seed for each iteration
+  hightemp <- data.frame(
+    development_time = rnorm(30, mean = 10, sd = sqrt(1.5))
+  )
+  lowtemp <- data.frame(
+    development_time = rnorm(30, mean = 15, sd = sqrt(2.0))
+  )
+  hightemp$group <- "Higher Temperature"
+  lowtemp$group <- "Lower Temperature"
+  insect_data <- rbind(hightemp, lowtemp)
+  
+  #  ANOVA
+  anova <- aov(development_time ~ group, data = insect_data)
+  p_values[i] <- summary(anova)[[1]]$`Pr(>F)`[1]
+  
+    # Store the results
+    results[[i]] <- list(
+      summary = summary(anova),
+      data = insect_data)
+  }
+
+  # Print the p-values from each iteration
+  print(p_values)
+  
+  # Print the summaries of the models for each iteration
+   for (i in 1:6) {
+     cat("Iteration", i, ":\n")
+    print(results[[i]]$summary)
+}
+
+
+# Generate a plot showing the density of development_time by group for each iteration
+plot_list <- lapply(results, function(res) {
+  ggplot(res$data, aes(x = development_time, fill = group)) +
+    geom_density(alpha = 0.5) +
+    labs(title = "Development Time Density by Group",
+         x = "Development Time",
+         y = "Density") +
+    theme_minimal()
+})
+
+# Plot the density plots
+gridExtra::grid.arrange(grobs = plot_list, ncol = 2)
+
+```
+
+Now begin adjusting the means of the different groups. Given the sample sizes you have chosen, how small can the differences between the groups be (the “effect size”) for you to still detect a significant pattern (p < 0.05)?
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Set the parameters
+alpha <- 0.05
+power <- 0.8
+n <- 30  # Sample size for each group
+sd1 <- sqrt(1.5)  # Standard deviation for group 1
+mean1 <- 10 # Mean for group 1
+sd2 <- sqrt(2.0)  # Standard deviation for group 2
+mean2 <- 15  # Mean for group 2
+
+#  power analysis for Cohen's d
+d_values <- seq(0.01, 1, by = 0.01)  # Range of Cohen's d values to test
+significant_effects <- numeric(length(d_values))
+
+for (i in 1:length(d_values)) {
+  d <- d_values[i]  # Cohen's d value
+  means_diff <- d * sqrt((sd1^2 + sd2^2) / 2)  # Calculate the difference in means
+  t_test_result <- t.test(rnorm(n, mean1, sd1), rnorm(n, mean2, sd2), var.equal = TRUE)  # t-test
+  p_value <- t_test_result$p.value
+  significant_effects[i] <- p_value
+}
+
+# Find the minimum detectable effect size (Cohen's d)
+min_d <- d_values[which(significant_effects < alpha)[1]]
+
+# Print the minimum detectable effect size
+print(paste("Minimum detectable effect size (Cohen's d):", min_d))
+```
+
+
+
+Alternatively, for the effect sizes you originally hypothesized, what is the minimum sample size you would need in order to detect a statistically significant effect? Again, run the model a few times with the same parameter set to get a feeling for the effect of random variation in the data.
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Set the parameters
+alpha <- 0.05
+power <- 0.8
+sd1 <- sqrt(1.5)  # Standard deviation for group 1
+mean1 <- 10  # Mean for group 1
+sd2 <- sqrt(2.0)  # Standard deviation for group 2
+mean2 <- 15 # Mean for group 1
+
+# Calculate Statistical Power
+pwrss.t.2means(mu1 = mean1, mu2 = mean2, sd1 = sd1, sd2 = sd2, kappa = 1, 
+               n2 = 30, alpha = 0.05,
+               alternative = "not equal")
+
+# Calculate Minimum Required Sample Size
+pwrss.t.2means(mu1 = mean1, mu2 = mean2, sd1 = sd1, sd2 = sd2, kappa = 1, 
+               power = .80, alpha = 0.01,
+               alternative = "not equal")
+
+```
+Write up your results in a markdown file, organized with headers and different code chunks to show your analysis. Be explicit in your explanation and justification for sample sizes, means, and variances.
+
+
+
+
+If you have time, try repeating this exercise with one of the more sophisticated distributions, such as the gamma or negative binomial (depending on the kind of data you have). You will have to spend some time figuring out by trial and error the parameter values you will need to generate appropriate means and variances of the different groups.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+
+
+# Function to generate gamma-distributed data with specific mean and variance
+generate_gamma_data <- function(mean, var, size) {
+  scale <- var / mean  # Calculate the scale parameter based on mean and variance
+  shape <- mean / scale  # Calculate the shape parameter based on mean and scale
+  return(rgamma(size, shape, scale))
+}
+
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Generate data for Group 1 with mean 10 and variance 5
+hightemp <- data.frame(
+  development_time = rgamma(10, 5, 100))
+
+# Generate data for Group 2 with mean 15 and variance 8
+lowtemp <- data.frame(
+  development_time = rgamma(15, 8, 100))
+
+# Combine the data for Group 1 and Group 2
+data <- rbind(
+  transform(hightemp, group = "Group 1"),
+  transform(lowtemp, group = "Group 2")
+)
+
+# Convert group variable to a factor
+data$group <- as.factor(data$group)
+
+# Fit a logistic regression model
+model <- glm(group ~ development_time, data = data, family = binomial)
+
+# Print the summary of the model
+summary(model)
+
+# Generate a graph
+
+ggplot(data, aes(x = development_time, fill = group)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Development Time Density by Group",
+       x = "Development Time",
+       y = "Density") +
+  theme_minimal()
+
+
+results <- list()
+
+for (i in 1:6) {
+  set.seed(i)  # Set a different seed for each iteration
+  
+  # Generate data for Group 1 with mean 10 and variance 5
+  hightemp <- data.frame(
+    development_time = rgamma(10, 5, 100)
+  )
+  
+  # Generate data for Group 2 with mean 15 and variance 8
+  lowtemp <- data.frame(
+    development_time = rgamma(15, 8, 100)
+  )
+  
+  # Combine the data for Group 1 and Group 2
+  data <- rbind(
+    transform(hightemp, group = "Group 1"),
+    transform(lowtemp, group = "Group 2")
+  )
+  
+  # Convert group variable to a factor
+  data$group <- as.factor(data$group)
+  
+  # Fit a logistic regression model
+  model <- glm(group ~ development_time, data = data, family = binomial)
+  
+  # Store the results
+  results[[i]] <- list(
+    summary = summary(model),
+    data = data
+  )
+}
+
+# Print the summaries of the models for each iteration
+for (i in 1:6) {
+  cat("Iteration", i, ":\n")
+  print(results[[i]]$summary)
+}
+
+# Generate a plot showing the density of development_time by group for each iteration
+plot_list <- lapply(results, function(res) {
+  ggplot(res$data, aes(x = development_time, fill = group)) +
+    geom_density(alpha = 0.5) +
+    labs(title = "Development Time Density by Group",
+         x = "Development Time",
+         y = "Density") +
+    theme_minimal() 
+})
+
+# Plot the density plots
+gridExtra::grid.arrange(grobs = plot_list, ncol = 3)
+
+
+# Calculate the effect size based on the means and variances of the groups
+effect_size <- abs(mean(hightemp$development_time) - mean(lowtemp$development_time)) /
+  sqrt(((sd(hightemp$development_time) ^ 2 + sd(lowtemp$development_time) ^ 2) / 2))
+
+mean1 <- mean(hightemp$development_time)
+sd1 <- sd(hightemp$development_time)
+mean2 <- mean(lowtemp$development_time)
+sd2 <- sd(lowtemp$development_time) 
+
+
+# min sample size
+min <- pwrss.np.2groups(mu1 = mean1, mu2 = mean2, sd1 = sd1, sd2 = sd2, kappa = 1, 
+                 power = .80, alpha = 0.05,
+                 alternative = "not equal")
+```
 
 
 

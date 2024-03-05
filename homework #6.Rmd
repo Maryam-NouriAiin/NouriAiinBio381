@@ -139,6 +139,14 @@ statSpecial <- stat_function(aes(x = xval, y = ..y..), fun = dbeta, colour="orch
 # Add the beta density plot to the adjusted histogram
 pSpecial + statSpecial
 
+
+
+
+
+
+#########################################
+####################
+#########################################
 # Simulate new data based on the normal distribution with parameters from 'fitdistr'
 simData <- rnorm(n = length(bumb$myvar), mean = meanML, sd = sdML)
 
