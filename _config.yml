@@ -4,6 +4,3 @@ description: Welcome to my GitHub repository/portfolio for the Computational Bio
 
 show_downloads: false
 theme: jekyll-theme-minimal
-body {
-    background-color: #add8e6; /* Light blue background */
-}
