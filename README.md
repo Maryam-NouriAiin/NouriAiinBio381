@@ -25,6 +25,6 @@ This is where I'll be posting my homework assignments and projects for the cours
 - [Atomic Vector ll](AttomicVectorII_6Feb2024.R) February 6, 2024
 - [Metrics List Data Frames](MetricsListDataFrames_8Feb2024.R) February 8, 2024
 - [Curating Data](CuratingData_22Feb2024.R) February 22, 2024
-- [Experimental design](Experimental design_27Feb2024.R) February 27, 2024
+- [Experimental design](ExperimentalDesign_27Feb2024.R) February 27, 2024
 - [Functions](Function_29Feb2024.R) February 29, 2024
 
