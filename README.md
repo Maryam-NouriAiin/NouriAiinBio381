@@ -1,6 +1,6 @@
 # Computational Biology
 
-This is where I'll be posting my homework assignments and projects for the course. I'm excited to use this platform to showcase my progress, collaborate with classmates, and dive into the fascinating world of computational biology. 
+This is where I'll be posting my homework assignments and projects for the course. 
 
 
 <div style="background-color: #a2ac94 ; color: #000; padding: 10px; border-radius: 5px;">
