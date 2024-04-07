@@ -87,7 +87,7 @@ sdML <- normPars$estimate["sd"]
 xval <- seq(0, max(bumb$myvar), len=length(bumb$myvar))
 
 # Print the sequence of x values
-xval
+#xval
 
 # Define a statistical transformation to apply the normal density function for plotting, specifying mean and sd from 'normPars'
 stat <- stat_function(aes(x = xval, y = ..y..), fun = dnorm, colour = "red", n = length(bumb$myvar), args = list(mean = meanML, sd = sdML))

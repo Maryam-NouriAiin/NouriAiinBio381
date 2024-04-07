@@ -1,0 +1,449 @@
+---
+title: 'Lecture #17: Control Structures II'
+author: "Nicholas J. Gotelli"
+date: "October 23, 2018"
+output:
+  html_document:
+    highlight: tango
+    theme: united
+  pdf_document: default
+---
+
+### `for` loops
+* The workhorse function for doing repetitive tasks
+* Universal in all computer languages
+* Controversial in R
+    - often not necessary (use vectorized operations!)
+    - very slow with binding operations (c,rbind,cbind,list) 
+    - many operations can be handled by special family of `apply` functions
+    
+#### Anatomy of a `for` loop
+```
+for (var in seq) { # start of for loop
+
+# body of for loop 
+
+} # end of for loop
+
+var is a counter variable that will hold the current value of the loop
+seq is an integer vector (or a vector of character strings) that defines the starting and ending values of the loop
+```
+
+
+
+```{r echo=TRUE}
+for (i in 1:5){
+  cat ("stryck ina loop", "\n") # "\n" character return
+  cat(3+2, "\n") # always gives five for each loop from 1 to 5
+  cat(runif(1), "\n")
+}
+
+```
+It is traditional in the statistics literature to use variables `i,j,k` to indicate counters. e.g.
+
+$$A = \sum_{i=1}^S n_i$$
+
+You can also use `t` for time, but remember that `t()` is also an R function that transposes a matrix. R is smart enough to recognize the difference, but it could cause problems for others.
+
+There are many ways to indicate the sequence, and the length of our loops will almost always be related to the size of a vector that we are working with. 
+
+Here is an example of one way to create a loop that is not recommended.
+
+```{r}
+myDogs <- c("chow","akita","malamute","husky","samoyed")
+for (i in myDogs) {
+  print(i)
+}
+```
+ The problem is that we cannot access the counter because the variable i is mapped directly to each element. Instead, we want to use a counter variable that maps to the position in myDogs
+ 
+```{r}
+for (i in 1:length(myDogs)){
+  cat("i =",i,"myDogs[i] =" ,myDogs[i],"\n") # i=, then prints i, then print "myDogs[i] =" and give the dog name next
+}
+```
+
+This is the typical way we make a loop. One potential hazard is if the vector we are working with is empty
+```{r}
+myBadDogs <- NULL # because it is null the vector size is 0 in the next line when we say 1:length(mybad dog) it gives the for loop 2 value from 1 to 0
+for (i in 1:length(myBadDogs)){
+  cat("i =",i,"myBadDogs[i] =" ,myBadDogs[i],"\n")
+}
+```
+So, a safer way is to use `seq_along` function:
+
+```{r}
+for (i in seq_along(myDogs)){
+  cat("i =",i,"myDogs[i] =" ,myDogs[i],"\n")
+}
+```
+
+But notice now what happens when the vector is empty:
+
+```{r}
+
+# This time we correctly skip myBadDogs and do not make the loop
+for (i in seq_along(myBadDogs)){
+  cat("i =",i,"myBadDogs[i] =" ,myBadDogs[i],"\n")
+}
+```
+
+
+
+Alternatively, we may have a constant that we use to define the length of the vector:
+
+```{r, eval=FALSE}
+zz <- 5
+for (i in seq_len(zz)){
+  cat("i =",i,"myDogs[i] =" ,myDogs[i],"\n")
+}
+
+  
+```
+
+#### Tip #1: Don't do things in the loop if you do not need to!
+```{r, eval=FALSE}
+for (i in 1:length(myDogs)){
+  myDogs[i] <- toupper(myDogs[i])
+  cat("i =",i,"myDogs[i] =" ,myDogs[i],"\n")
+}
+ # or use
+myDogs <- tolower(myDogs)
+print(myDogs)
+cat(myDogs)
+
+#### Tip #2: Do not change object dimensions (`cbind,rbind,c,list`) in the loop!
+
+```{r, eval=FALSE}
+
+myDat <- runif(1)
+for (i in 2:10) {
+  temp <- runif(1) 
+  myDat <- c(myDat,temp) # do not change vector size in the loop!
+  cat("loop number =",i,"vector element =", myDat[i],"\n")
+}
+print(myDat)
+```
+
+#### Tip #3: Do not write a loop if you can vectorize an operation
+```{r, eval=FALSE}
+myDat <- 1:10
+for (i in seq_along(myDat)) {
+  myDat[i] <-  myDat[i] + myDat[i]^2
+  cat("loop number =",i,"vector element =", myDat[i],"\n")
+}
+
+# No loop is needed here!
+z <- 1:10
+z <- z + z^2
+print(z)
+
+
+```
+#### Tip #4: Always be alert to the distinction between the counter variable `i` and the vector element `z[i]`
+```{r, eval=FALSE}
+z <- c(10,2,4)
+for (i in seq_along(z)) {
+  cat("i =",i,"z[i] = ",z[i],"\n")
+}
+# What is value of i at this point?
+print(i)
+```
+
+#### Tip #5: Use `next` to skip certain elements in the loop
+
+```{r, eval=FALSE}
+z <- 1:20
+# What if we want to work with only the odd-numbered elements?
+#  %%  is integer division or remaining value! so we divide
+for (i in seq_along(z)) {
+  if(i %% 2==0) next
+  print(i)
+}
+
+# Another method, probably faster (why?)
+z <- 1:20
+zsub <- z[z %% 2!=0] # contrast with logical expression in previous if statement!
+length(z)
+for (i in seq_along(zsub)) {
+  cat("i = ",i,"zsub[i] = ",zsub[i],"\n")
+}
+```
+
+```{r}
+for (i in 1:4){
+j <- i + 10
+print(j)
+}
+
+
+while (i < 5){
+print(i)
+i <- i + 1
+}
+
+```
+
+
+
+#Control Structures III
+```{r echo=TRUE}
+# create a simple random growth population model function
+
+##################################################
+# FUNCTION: RanWalk
+# stochastic random walk 
+# input: times = number of time steps
+#        n1 = initial population size (= n[1])
+#        lambda = finite rate of increase
+#        noiseSD = sd of a normal distribution with mean 0
+# output: vector n with population sizes > 0 
+#         until extinction, then NA 
+#------------------------------------------------- 
+library(tcltk)
+library(ggplot2)
+RanWalk <- function(times=100,n1=50,lambda=1.00,noiseSD=10) { # lambda 1 means pop size does not change in time
+                n <- rep(NA,times)  # create output vector population size in each time step, empty vector that is filled with NA
+                n[1] <- n1 # initialize with starting population size assigning it to n that starts to fill n empty vector
+                noise <- rnorm(n=times,mean=0,sd=noiseSD) # create noise vector
+                for(i in 1:(times-1)) { # it does not go all the way to the vector, goes to time -1
+                  n[i + 1] <- lambda*n[i] + noise[i] # current pop size multiply by lambda plus the noise
+                  if(n[i + 1] <=0) { # set a if statement to if the number od the next time step is z, we replace it with NA
+                    n[i + 1] <- NA
+                    cat("Population extinction at time",i-1,"\n") # then write this and jump out of the loop entirely
+                    break} # end of if statement
+                } # endo of loop
+
+return(n) # if you donot give return it just gives you the very last one
+} # close the function
+
+
+# explore paramaters in plot function
+qplot(x=1:100,y=RanWalk(),geom="line")
+qplot(x=1:100,y=RanWalk(noiseSD=0),geom="line") # remove the noise
+qplot(x=1:100,y=RanWalk(lambda=1.01,noiseSD=0),geom="line") # add lambda 1% increase each time step
+qplot(x=1:100,y=RanWalk(lambda=0.98,noiseSD=0),geom="line") # 2% decrease in pop size
+```
+### Extensions of the model for realistic populations
+- discrete integers to represent counts of individuals (use `round()`)
+- extinction of sexually reproducing population if all same sex (use `unisexExtinct == runif(1) <= 2*(0.5)^n`
+- add environmental noise that is not a random walk (add rnorm(0,1))
+- add measurement error (add rnorm(0,1)) for 0s without extinction
+
+
+### Using double for loops
+
+```{r, eval=TRUE}
+m <- matrix(round(runif(20),digits=2),nrow=5)
+m
+
+# loop over rows
+for (i in 1:nrow(m)) { # could use for (i in seq_len(nrow(m)))
+  m[i,] <- m[i,] + i # i which is the row counter
+} 
+print(m)
+
+# Loop over columns
+m <- matrix(round(runif(20),digits=2),nrow=5)
+for (j in 1:ncol(m)) { # now looping over columnts
+  m[,j] <- m[,j] + j
+}
+print(m)
+
+# Loop over rows and columns
+m <- matrix(round(runif(20),digits=2),nrow=5)
+for (i in 1:nrow(m)) {
+  for (j in 1:ncol(m)) {
+    m[i,j] <- m[i,j] + i + j
+  } # end of column j loop
+} # end or row i loop
+ print(m) 
+```
+### Writing functions for equations and sweeping over parameters
+
+```{r, eval=TRUE}
+# S = cA^z species area function, but what does it look like??
+
+##################################################
+# function: SpeciesAreaCurve
+# creates power function relationship for S and A
+# input: A is a vector of island areas
+#        c is the intercept constant
+#        z is the slope constant
+# output: S is a vector of species richness values
+#------------------------------------------------- 
+SpeciesAreaCurve <- function(A=1:5000,c= 0.5,z=0.26){ # number of species 
+  
+  S <- c*(A^z)
+return(S)
+}
+head(SpeciesAreaCurve())
+
+##################################################
+# function: SpeciesAreaPlot
+# plot species area curves with parameter values
+# input: A = vector of areas
+#        c = single value for c parameter
+#        z = single value for z parameter
+
+# output: smoothed curve with parameters in graph
+#------------------------------------------------- 
+SpeciesAreaPlot <- function(A=1:5000,c= 0.5,z=0.26) {
+plot(x=A,y=SpeciesAreaCurve(A,c,z),type="l",xlab="Island Area",ylab="S",ylim=c(0,10)) # reset the function from previous codes, use the same values A c z
+mtext(paste("c =", c,"  z =",z),cex=0.7)  # 
+#      return()
+}
+SpeciesAreaPlot()
+```
+
+### Now build a grid of plots!
+
+```{r}
+# global variables
+cPars <- c(100,150,175)
+zPars <- c(0.10, 0.16, 0.26, 0.3)
+par(mfrow=c(3,4)) # set 3 row and 4 col
+for (i in seq_along(cPars)) {
+  for (j in seq_along(zPars)) {
+    SpeciesAreaPlot(c=cPars[i],z=zPars[j])
+  }
+} 
+par(mfrow=c(1,1))
+```
+
+
+### Looping with `while` or `repeat`
+```{r, eval=FALSE}
+# looping with for
+cutPoint <- 0.1
+z <- NA
+ranData <- runif(100)
+for (i in seq_along(ranData)) {
+ z <- ranData[i]
+ if (z < cutPoint) break
+}
+print(z)
+
+# looping with while
+
+z <- NA
+cycleNumber <- 0
+while (is.na(z) | z >= cutPoint) {
+  z <- runif(1)
+  cycleNumber <- cycleNumber + 1
+  
+}
+print(z)
+print(cycleNumber)
+
+# looping with repeat
+
+z <- NA
+cycleNumber <- 0
+
+repeat {
+  z <- runif(1)
+cycleNumber <- cycleNumber + 1
+  
+  if (z <= cutPoint) break
+}
+print(z)
+print(cycleNumber)
+
+# add code for cycle number
+# try setting limit to 0.001
+
+# 
+  
+   
+```
+
+### Using the `expand.grid()` function to create a dataframe with parameter combinations
+
+```{r}
+
+expand.grid(cPars,zPars)
+str(expand.grid(cPars=cPars,zPars=zPars))
+##################################################
+# function: SA_Output
+# Summary stats for species-area power function
+# input: vector of predicted species richness 
+# output: list of max-min, coefficient of variation 
+#------------------------------------------------- 
+SA_Output <- function(S=runif(1:10)) {
+
+sumStats <- list(SGain=max(S)-min(S),SCV=sd(S)/mean(S))
+
+return(sumStats)
+}
+SA_Output()
+
+# Build program body with a single loop through 
+# the parameters in modelFrame
+
+# Global variables
+Area <- 1:5000
+cPars <- c(100,150,175)
+zPars <- c(0.10, 0.16, 0.26, 0.3)
+
+# set up model frame
+modelFrame <- expand.grid(c=cPars,z=zPars)
+modelFrame$SGain <- NA
+modelFrame$SCV <- NA
+print(modelFrame)
+
+# cycle through model calculations
+for (i in 1:nrow(modelFrame)) {
+  
+  # generate S vector
+  temp1 <- SpeciesAreaCurve(A=Area,
+                            c=modelFrame[i,1],
+                            z=modelFrame[i,2])
+  # calculate output stats
+  temp2 <- SA_Output(temp1)
+  # pass results to columns in data frame
+  modelFrame[i,c(3,4)] <- temp2
+  
+}
+print(modelFrame)
+
+```
+
+### Parameter sweeping redux with `ggplot` graphics
+
+```{r}
+library(ggplot2)
+
+Area <- 1:5 #keep this very small initially
+cPars <- c(100,150,175)
+zPars <- c(0.10, 0.16, 0.26, 0.3)
+
+# set up model frame
+modelFrame <- expand.grid(c=cPars,z=zPars,A=Area)
+modelFrame$S <- NA
+
+
+# loop through the parameters and fill with SA function
+
+for (i in 1:length(cPars)) {
+  for (j in 1:length(zPars)) {
+    modelFrame[modelFrame$c==cPars[i] & modelFrame$z==zPars[j],"S"] <-   SpeciesAreaCurve(A=Area,c=cPars[i],z=zPars[j])
+  }
+}
+# print(modelFrame) # check by printing a data frame with limited parameter values
+
+library(ggplot2)
+
+p1 <- ggplot(data=modelFrame)
+p1 + geom_line(mapping= aes(x=A,y=S)) +
+  facet_grid(c~z)
+
+p2 <- p1
+p2 + geom_line(mapping=aes(x=A,y=S,group=z)) +
+  facet_grid(.~c)
+
+p3 <- p1
+p3 + geom_line(mapping=aes(x=A,y=S,group=c)) +
+  facet_grid(z~.)
+```
+

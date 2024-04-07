@@ -1,0 +1,204 @@
+#dplyr_SQL
+
+setwd("~/Desktop/githubRepos/NouriAiinBio381")
+#Installing Packages
+library(sqldf)
+library(dplyr)
+library(tidyverse)
+
+#Read in datafiles
+species_clean<-read.csv("site_by_species.csv") 
+
+var_clean<-read.csv("site_by_variables.csv")
+
+
+head(species_clean)
+
+head(var_clean)
+
+
+#Dplyr method-uses the filter() method
+species<-filter(species_clean, Site<30)
+var<-filter(var_clean, Site<30)
+
+
+#SQL Method
+query="
+SELECT Site, Sp1, Sp2, Sp3 
+FROM species
+WHERE Site<'30'
+"
+sqldf(query)
+
+# subset col we use the dplyr select( func, and it can use either col # or name)
+
+
+edit_species<-species%>%
+  select(Site, Sp1, Sp2, Sp3)
+
+edit_species_2<-species%>% #Using column #s doesn't require any indicators
+  select(1, 2, 3, 4)
+
+
+#SQL method-
+# query entire table
+query ="
+SELECT *
+FROM species
+"
+a=sqldf(query) # save results to data frame
+
+sqldf(query) # dump to console
+
+
+query ="
+SELECT Site, Sp1, Sp2, Sp3
+FROM species
+"
+sqldf(query)
+
+
+# reorder columns
+query ="
+SELECT Sp1, Sp2, Sp3, Site
+FROM species
+"
+sqldf(query)
+
+
+species<-rename(species, Long=Longitude.x., Lat=Latitude.y.)
+
+
+# Pull out all the numerical columns
+
+#dplyr method
+num_species<-species%>%
+  mutate(letters=rep(letters, length.out=length(species$Site)))
+num_species<-select(num_species, Site, Long, Lat, Sp1,letters)
+num_species_edit<-select(num_species, where(is.numeric))
+
+
+
+#Pivot_longer lengthens the data, decreasing the number of columns, and increases the number of rows. Can use either pivot_longer or gather, but gather is outdated
+
+
+species_long<-pivot_longer(edit_species, cols=c(Sp1, Sp2, Sp3), names_to="ID")
+
+
+# Pivot_wide
+
+#Pivot_wide goes from long to wide, widens the data, increasing the number of columns, decreases the number of rows. Can use pivot_wider or spread
+
+species_wide<-pivot_wider(species_long, names_from=ID)
+
+
+
+# SQL Method
+## aggregate and give counts of ObjectType
+
+query="
+SELECT SUM(Sp1+Sp2+Sp3)
+FROM species_wide
+GROUP BY SITE
+"
+sqldf(query)
+
+
+
+#Aggregate and give counts with new variable name 
+
+query="
+SELECT SUM(Sp1+Sp2+Sp3) AS Occurence #same as mutate function
+FROM species_wide
+GROUP BY SITE
+"
+sqldf(query)
+
+
+#Mutating/Adding columns
+#Dplyr method-uses mutate function()-we've already covered this!
+
+
+#SQL Method
+
+#SQL method
+query="
+ALTER TABLE species_wide
+ADD new_column VARCHAR
+"
+sqldf(query)
+
+
+# Re-ordering columns 
+## Dplyr method-using the select() method
+
+reorder<-select(species, Sp1, Sp2, Site)
+
+
+#SQL Method
+#reorder columns
+
+query ="
+SELECT Sp1, Sp2, Sp3, Site
+FROM species
+"
+sqldf(query)
+# 
+# # 2 File Operations
+# 
+# Here, we are going to interact with 2 data files (.csv's), and try to gather them into a usable form. Often times people will store different variables/types of data into different files, just to maintain organization-sometimes this is good, but others, we may need want to combine them, in which case we "join" them together. 
+# 
+# Joins are going to be different from binding-joining requires the data files to have at least one similar column so that it knows how to combine them, and will order it accordingly,while binding just immediately pastes the rows/columns together, and by position, not by anything meaningful. So, use those with that warning-there is a high chance for error when using bind functions, as any minor error in that could throw off the entire dataset.
+# 
+# 
+# # Left/Right/Union Joins
+# 
+# Let's first start with clean files-Reset the species and var variables, and let's filter them to a manageable size.
+
+edit_species<-species_clean%>%
+  filter(Site<30)%>%
+  select(Site, Sp1, Sp2, Sp3, Sp4, Longitude.x., Latitude.y.)
+
+edit_var<-var_clean%>%
+  filter(Site<30)%>%
+  select(Site, Longitude.x., Latitude.y., BIO1_Annual_mean_temperature, BIO12_Annual_precipitation)
+
+
+#Dplyr method
+#Left_join-a left join basically means you are stitching the matching rows of file B to file A-this does require that there be some matching/marker column to actually link. 
+left<-left_join(edit_species, edit_var, by="Site")
+head(left)
+
+
+#Right_join-does the opposite-joins the matching rows of file A to B. The difference here is what is lost when you match them together
+right<-right_join(edit_species, edit_var, by="Site")
+head(right)
+
+
+
+#Inner_join-retains rows that match between both files A and B. This one loses a lot of information if they aren't matching very well.
+inner<-inner_join(edit_species, edit_var, by="Site")
+
+
+
+#Full_join-the opposite of an inner join, just retains all values, all rows, so instead of losing a lot of rows, you have a trade-off where you instead get a bunch of NA's when they're missing.
+full<-full_join(edit_species, edit_var, by="Site")
+
+
+#SQL method
+query="
+SELECT BIO1_Annual_mean_temperature, BIO12_Annual_precipitation
+FROM edit_var
+INNER JOIN edit_species ON edit_var.Site = edit_species.Site
+"
+x<-sqldf(query)
+
+
+# left join keeps all rows from the first table and adds
+# data from second table for matches and NAs for mismatches (n = 500 rows = row number in Orders table)
+query="
+SELECT BIO1_Annual_mean_temperature, BIO12_Annual_precipitation
+FROM edit_var
+LEFT JOIN edit_species ON edit_var.Site = edit_species.Site
+"
+x<-sqldf(query)

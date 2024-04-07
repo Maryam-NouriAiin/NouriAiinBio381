@@ -1,0 +1,122 @@
+---
+title: "homework #10"
+author: "Maryam Nouri-Aiin"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+# For loops and randomization tests
+
+Using a for loop, write a function to calculate the number of zeroes in a numeric vector. Before entering the loop, set up a counter variable counter <- 0. Inside the loop, add 1 to counter each time you have a zero in the vector. Finally, use return(counter) for the output.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+a <- sample(0:10, 100, replace = TRUE)
+
+count_zeroes <- function(vec) {
+  counter <- 0
+  for (value in vec) {
+    if (value == 0) {
+      counter <- counter + 1
+    }
+  }
+  return(counter)
+}
+
+count_zeroes (a)
+
+
+```
+
+Use subsetting instead of a loop to rewrite the function as a single line of code.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+count_zeroes_vec <- function(vec) {
+  sum(vec == 0)
+}
+
+count_zeroes_vec(a)
+```
+Write a function that takes as input two integers representing the number of rows and columns in a matrix. The output is a matrix of these dimensions in which each element is the product of the row number x the column number.
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+count_rows_cols <- function(df) {
+  rows <- nrow(df)
+  cols <- ncol(df)
+  results <- matrix(c(rows, cols), nrow = 1, ncol = 2, dimnames = list(NULL, c("Rows", "Cols")))
+
+  return(results)
+}
+
+
+df <- matrix(1:20, nrow = 5)  # example matrix
+count_rows_cols(df)
+```
+In the next few lectures, you will learn how to do a randomization test on your data. We will complete some of the steps today to practice calling custom functions within a for loop. Use the code from the March 31st lecture (Randomization Tests) to complete the following steps:
+
+Simulate a dataset with 3 groups of data, each group drawn from a distribution with a different mean. The final data frame should have 1 column for group and 1 column for the response variable.
+
+``````{r echo=TRUE, message=FALSE, warning=FALSE}
+set.seed(123)  # Ensure reproducibility
+sim_dat <- function() {
+  g1 <- rnorm(100, mean = 10)  # 100 observations from N(10, 1)
+  g2 <- rnorm(100, mean = 15)  # 100 observations from N(15, 1)
+  g3 <- rnorm(100, mean = 20)  # 100 observations from N(20, 1)
+  data.frame(
+    g = rep(1:3, each = 100),
+    response = c(g1, g2, g3)
+  )
+}
+data <- sim_dat()  # function is defined and generates initial data
+
+```
+
+Write a custom function that 1) reshuffles the response variable, and 2) calculates the mean of each group in the reshuffled data. Store the means in a vector of length 3.
+
+``````{r echo=TRUE, message=FALSE, warning=FALSE}
+reshuf_and_mean <- function(data) {
+  shuffled <- sample(data$response)
+  data$shuffled <- shuffled
+  aggregate(shuffled ~ g, data, mean)
+}
+```
+Use a for loop to repeat the function in b 100 times. Store the results in a data frame that has 1 column indicating the replicate number and 1 column for each new group mean, for a total of 4 columns.
+
+``````{r echo=TRUE, message=FALSE, warning=FALSE}
+repeat_reshuf <- function(data, n = 100) {
+  results <- matrix(nrow = n, ncol = 3)
+  for (i in 1:n) {
+    means <- reshuf_and_mean(data)$shuffled
+    results[i, ] <- means
+  }
+  results_df <- as.data.frame(results)
+  names(results_df) <- c("Mean_g1", "Mean_g2", "Mean_g3")
+  results_df$Replicate <- 1:n
+  return(results_df)
+}
+reshufd_means_df <- repeat_reshuf(data, 100)  
+reshufd_means_long <- reshape2::melt(reshufd_means_df, id.vars = "Replicate")
+```
+
+Use qplot() to create a histogram of the means for each reshuffled group. Or, if you want a challenge, use ggplot() to overlay all 3 histograms in the same figure. How do the distributions of reshuffled means compare to the original means?
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+ggplot(reshufd_means_long, aes(x = value, fill = variable)) +
+  geom_histogram(alpha = 0.5, position = "identity", binwidth = 0.25) +
+  labs(x = "Mean", y = "Frequency") +
+  theme_minimal() +
+  scale_fill_manual(values = c("blue", "red", "green")) +
+  guides(fill=guide_legend(title="Group"))
+
+```
