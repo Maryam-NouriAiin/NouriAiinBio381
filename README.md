@@ -14,7 +14,7 @@ This is where I'll be posting my homework assignments and projects for the cours
 - [Assignment #6](homework--6.html) February 21, 2024
 - [Assignment #7](homework--7.html) February 28, 2024
 - [Assignment #8](homework--8.html) March 20, 2024
-- [Assignment #9](script.R) and [](function.R) March 27, 2024
+- [Assignment #9](script.R) and [function file](function.R) March 27, 2024
 - [Assignment #10](homework--10.html) April 3, 2024
 - [Assignment #11](homework--11.html) April 10, 2024
 - [Assignment #12](homework--12.html) April 17, 2024
