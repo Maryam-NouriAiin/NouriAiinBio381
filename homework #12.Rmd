@@ -196,7 +196,7 @@ stat_plot  <- stat_plot  +
     axis.text = element_text(size = 10, color = "black"),
     axis.title = element_text(size = 12)
   )
-# stat_plot 
+stat_plot 
 
 #stat_plot  <- stat_plot   
 #stat_plot + facet_wrap(~species, scales = "free_y")
