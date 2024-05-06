@@ -7,8 +7,6 @@ output:
     highlight: github
 ---
 
-## Pckages
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(ggstatsplot)
 library(palmerpenguins)
@@ -17,9 +15,6 @@ library(patchwork)
 library(plotly)
 
 ```
-
-
-## Experimenting with rendering
  
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 data("penguins", package = "palmerpenguins")
