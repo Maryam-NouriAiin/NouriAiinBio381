@@ -1,12 +1,10 @@
 ---
 title: "Homework #12"
-mainfont: DejaVu Sans
+date: "`r Sys.Date()`"
 output:
-  html_document: default
-  pdf_document:
-    latex_engine: xelatex
-  word_document: default
-font-family: Times New Roman
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
 ---
 
 ## Pckages
@@ -56,7 +54,8 @@ hist_interactive
 ```
 
 
-# ```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
 # # Initial bin width
 # initial_binwidth <- 5
 # 
@@ -121,7 +120,10 @@ hist_interactive
 # # Show plot
 # #histogram_plotly
 ```
+
 ## Scatter plot
+
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 point <- ggplot(data = penguins, 
                        aes(x = flipper_length_mm,
@@ -139,18 +141,24 @@ point <- ggplot(data = penguins,
        y = "Body mass (g)",
        color = "Penguin species",
        shape = "Penguin species") +
-  theme(legend.position = "right",  # Adjust legend position
-        plot.title.position = "plot",
-        plot.caption = element_text(hjust = 0, face= "italic"),
-        plot.caption.position = "plot")
+      theme(plot.title = element_text(size = 18, face = "bold", color = "red"),
+        legend.title=element_text(size=10, face = "italic", color = "blue"), 
+        legend.text=element_text(size=6, color="darkgreen"),
+        axis.title = element_text(face = "bold", color="orange"))
 
 point
+```
 
+
+## Interactive plot
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplotly(point)
 
 ```
 
 ## Statistical plot
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 stat_plot <- ggbetweenstats(
   data = penguins,

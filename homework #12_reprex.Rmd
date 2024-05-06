@@ -1,0 +1,225 @@
+```{r reprex-options, include = FALSE}
+options(
+  keep.source = TRUE,
+  crayon.enabled = FALSE,
+  reprex.current_venue = "gh"
+)
+```
+
+```{r, results = 'asis', echo = FALSE, include = file.exists('.Rprofile'), eval = file.exists('.Rprofile')}
+cat(sprintf("*Local `.Rprofile` detected at `%s`*", normalizePath(".Rprofile")))
+```
+
+---
+title: "Homework #12"
+output: reprex::reprex_document
+knit: reprex::reprex_render
+---
+
+## Pckages
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(ggstatsplot)
+library(palmerpenguins)
+library(tidyverse)
+library(patchwork)
+library(plotly)
+
+```
+
+
+## Experimenting with rendering
+ 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data("penguins", package = "palmerpenguins")
+penguins <- drop_na(penguins)
+```
+
+## Histogram
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+hist <- ggplot(data = penguins, aes(x = flipper_length_mm)) +
+  geom_histogram(aes(fill = species), 
+                 color = "black",            # Add black outline to bars
+                 alpha = 0.5, 
+                 position = "identity",
+                 binwidth = 5) +            # Adjust bin width as needed
+  scale_fill_manual(values = c("darkblue", "red", "cyan4")) +
+  labs(x = "Flipper length (mm)",
+       y = "Frequency",
+       title = "Flipper") +
+  theme(panel.background = element_rect(fill = "lightgray"),  # Add background color
+        panel.grid.major = element_line(color = "white", size = 0.5),  # Add grid lines
+        panel.grid.minor = element_line(color = "white", size = 0.25))
+
+hist
+```
+
+## Convert ggplot to interactive plot
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+hist_interactive  <- ggplotly(hist)
+hist_interactive
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# # Initial bin width
+# initial_binwidth <- 5
+# 
+# # Function to create histogram
+# create_histogram <- function(binwidth) {
+#   ggplot(data = penguins, aes(x = flipper_length_mm)) +
+#     geom_histogram(aes(fill = species), 
+#                    color = "black",
+#                    alpha = 0.5, 
+#                    position = "identity",
+#                    binwidth = binwidth) +
+#     scale_fill_manual(values = c("darkblue", "red", "cyan4")) +
+#     labs(x = "Flipper length (mm)",
+#          y = "Frequency",
+#          title = "Flipper ") +
+#     theme(panel.background = element_rect(fill = "lightgray"),
+#           panel.grid.major = element_line(color = "white", size = 0.5),
+#           panel.grid.minor = element_line(color = "white", size = 0.25))
+# }
+# 
+# # Create initial plot
+# histogram <- create_histogram(initial_binwidth)
+# 
+# # Convert ggplot to plotly
+# histogram_plotly <- ggplotly(histogram)
+# 
+# # Add slider for bin width
+# histogram_plotly <- histogram_plotly %>%
+#   layout(
+#     updatemenus = list(
+#       list(
+#         active = 0,
+#         buttons = list(
+#           list(
+#             label = "Bin Width",
+#             method = "update",
+#             args = list(list(visible = c(TRUE, FALSE)),
+#                         list(title = "Bin Width",
+#                              xaxis = list(title = "Flipper length (mm)"),
+#                              yaxis = list(title = "Frequency")))),
+#           list(
+#             label = "5",
+#             method = "update",
+#             args = list(list(visible = c(TRUE, FALSE)),
+#                         list(title = "Bin Width",
+#                              xaxis = list(title = "Flipper length (mm)"),
+#                              yaxis = list(title = "Frequency")),
+#                         list(binwidth = 5))),
+#           list(
+#             label = "10",
+#             method = "update",
+#             args = list(list(visible = c(TRUE, FALSE)),
+#                         list(title = "Bin Width",
+#                              xaxis = list(title = "Flipper length (mm)"),
+#                              yaxis = list(title = "Frequency")),
+#                         list(binwidth = 10)))
+#         )
+#       )
+#     )
+#   )
+# 
+# # Show plot
+# #histogram_plotly
+```
+
+## Scatter plot
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+point <- ggplot(data = penguins, 
+                       aes(x = flipper_length_mm,
+                           y = body_mass_g)) +
+  geom_point(aes(color = species, 
+                 shape = species),
+             size = 6,
+             alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +  # Add a trend line
+  scale_color_manual(values = c("darkblue","red","cyan4")) +
+  scale_shape_manual(values = c(16, 17, 15)) +  # Modify point shapes
+  labs(title = "Penguin size",
+       subtitle = "Flipper length and body mass",
+       x = "Flipper length (mm)",
+       y = "Body mass (g)",
+       color = "Penguin species",
+       shape = "Penguin species") +
+      theme(plot.title = element_text(size = 18, face = "bold", color = "red"),
+        legend.title=element_text(size=10, face = "italic", color = "blue"), 
+        legend.text=element_text(size=6, color="darkgreen"),
+        axis.title = element_text(face = "bold", color="orange"))
+
+point
+```
+
+
+## Interactive plot
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplotly(point)
+
+```
+
+## Statistical plot
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+stat_plot <- ggbetweenstats(
+  data = penguins,
+  x = species,
+  y = bill_length_mm
+)
+stat_plot  <- stat_plot  + 
+  # Add labels and title
+  labs(
+    x = "Penguins Species",
+    y = "Bill Length",
+    title = "Distribution of bill length across penguins species"
+  ) + 
+  # Customizations
+  theme(
+    # This is the new default font in the plot
+    text = element_text(family = "Roboto", size = 8, color = "black"),
+    plot.title = element_text(
+      family = "Lobster Two", 
+      size = 20,
+      face = "bold",
+      color = "#2a475e"
+    ),
+    # Statistical annotations below the main title
+    plot.subtitle = element_text(
+      family = "Roboto", 
+      size = 15, 
+      face = "bold",
+      color="#1b2838"
+    ),
+    plot.title.position = "plot", # slightly different from default
+    axis.text = element_text(size = 10, color = "black"),
+    axis.title = element_text(size = 12)
+  )
+# stat_plot 
+
+#stat_plot  <- stat_plot   
+#stat_plot + facet_wrap(~species, scales = "free_y")
+```
+
+
+## Multiple plots in ggplot2 with patchwork
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+point + hist + stat_plot + plot_layout(ncol = 1, nrow = 3)
+
+hist | point
+
+
+hist / point
+```
+
+
+
+<sup>Created on `r Sys.Date()` with [reprex v`r utils::packageVersion("reprex")`](https://reprex.tidyverse.org)</sup>
