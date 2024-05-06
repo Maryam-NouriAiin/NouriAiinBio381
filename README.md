@@ -17,7 +17,7 @@ This is where I'll be posting my homework assignments and projects for the cours
 - [Assignment #9](script.R) and [function file](function.R) March 27, 2024
 - [Assignment #10](homework--10.html) April 3, 2024
 - [Assignment #11](homework--11.html) April 10, 2024
-- [Assignment #12](howework-12.html) April 17, 2024
+- [Assignment #12](homework--12.html) April 17, 2024
 
 <div style="background-color:#cbccbc; color: #000; padding: 10px; border-radius: 5px;">
   <p> Class notes </p> </div>
