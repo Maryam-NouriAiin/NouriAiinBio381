@@ -1,0 +1,180 @@
+---
+title: 'homework #11'
+author: "Maryam Nouri-Aiin"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#' Clear the environment
+rm(list = ls())
+
+# Packages
+```{r include=FALSE}
+# loading R packages
+library(log4r)
+library(TeachingDemos)
+library(tidyverse)
+library(pracma)
+library(ggmosaic)
+library(dplyr)
+library(readr)
+library(tidyr)
+```
+
+# Developping functions to batch processing BART dataset
+
+```{r echo=TRUE}
+# List all files recursively with full paths
+files <- list.files("/Users/maryamnouri-aiin/Desktop/githubRepos/homework11/CleanedData", 
+                    full.names = TRUE, 
+                    recursive = TRUE)
+
+# Filter files to only include those with "countdata" in the name
+countdata_files <- files[grepl("countdata.*\\.csv$", files)]
+
+# Print the countdata files to verify
+# print(countdata_files)
+
+# print(countdata_files)  #  if any files are being collected
+if (length(countdata_files) == 0) {
+  print("No countdata files found. Check the directory path and file pattern.")
+}
+
+if (length(countdata_files) > 0) {
+  example_data <- read_csv(countdata_files[[1]])
+  print(colnames(example_data))
+} else {
+  print("No files found.")
+}
+
+# Define functions
+clean_data <- function(data) {
+  # Drop rows where 'scientificName' or 'clusterSize' are NA
+  data %>% filter(!is.na(scientificName) & !is.na(clusterSize))
+}
+# clean_data <- function(data) {
+#   tidyr::drop_na(data)  # using tidyr for drop_na()
+# }
+
+extract_year <- function(filename) {
+  # This regex looks specifically for a pattern where four digits are followed by "-MM"
+  matches <- regmatches(filename, regexpr("\\d{4}(?=-\\d{2})", filename, perl = TRUE))
+  if (length(matches) > 0 && !is.na(matches[1])) {
+    as.integer(matches[1])
+  } else {
+    NA_integer_  # Return NA if no valid year is found
+  }
+}
+
+
+# Example filename
+example_file <- "NEON.D18.BARR.DP1.10003.001.brd_countdata.2017-07.basic.20231227T060201Z.csv"
+extract_year(example_file)  # print 2017
+
+calculate_abundance <- function(data) {
+  if ("clusterSize" %in% names(data)) {
+    # Convert clusterSize to numeric to ensure sum works correctly
+    numeric_cluster_size <- as.numeric(data$clusterSize)
+    if (any(is.na(numeric_cluster_size))) {
+      print("NA introduced by coercion when converting clusterSize to numeric.")
+    }
+    sum(numeric_cluster_size, na.rm = TRUE)
+  } else {
+    0  # Return 0 if the column doesn't exist
+  }
+}
+
+calculate_species_richness <- function(data) {
+  if ("scientificName" %in% names(data)) {
+    length(unique(data$scientificName))
+  } else {
+    0  # Return 0 if the column doesn't exist
+  }
+}
+```
+
+
+# List of the functions
+
+``` {}
+# source function files ----
+
+source(clean_data)
+source(extract_year)
+source(calculate_species_richness)
+source(calculate_abundance)
+```
+
+
+# Printing the results and visualizing the data
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Initialize summary data frame
+summary_df <- data.frame(FileName = character(),
+                         Abundance = integer(),
+                         SpeciesRichness = integer(),
+                         Year = integer())
+
+for (file in countdata_files) {
+  print(paste("Processing:", file))
+  data <- readr::read_csv(file, show_col_types = FALSE)
+  print("Data read successfully.")
+  
+  # Apply cleaning function
+  cleaned_data <- clean_data(data)
+  print(paste("Data after cleaning:", nrow(cleaned_data), "rows remaining."))
+  
+  # Convert clusterSize to numeric if necessary
+  cleaned_data$clusterSize <- as.numeric(cleaned_data$clusterSize)
+  if (any(is.na(cleaned_data$clusterSize))) {
+    print("NA values found in clusterSize after conversion to numeric.")
+  }
+  
+  # Extract year, calculate abundance and species richness
+  year <- extract_year(file)
+  abundance <- calculate_abundance(cleaned_data)
+  species_richness <- calculate_species_richness(cleaned_data)
+  
+  # Append to summary data frame
+  summary_df <- rbind(summary_df, data.frame(FileName = basename(file),
+                                             Abundance = abundance,
+                                             SpeciesRichness = species_richness,
+                                             Year = year))
+}
+
+# Print the final summary data frame
+print(summary_df)
+
+
+
+ggplot(summary_df, aes(x = Year, y = Abundance, group = 1)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Abundance Over Years",
+       x = "Year",
+       y = "Abundance") +
+  theme_minimal()
+
+ggplot(summary_df, aes(x = Year, y = SpeciesRichness, group = 1)) +
+  geom_line(color = "blue") +
+  geom_point(color = "blue") +
+  labs(title = "Species Richness Over Years",
+       x = "Year",
+       y = "Species Richness") +
+  theme_minimal()
+
+
+summary_df_long <- tidyr::pivot_longer(summary_df, cols = c("Abundance", "SpeciesRichness"))
+
+ggplot(summary_df_long, aes(x = Year, y = value, group = name, color = name)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~ name, scales = "free_y") +
+  labs(title = "Abundance and Species Richness Over Years",
+       x = "Year",
+       y = "Value") +
+  theme_minimal()
+```

@@ -1,0 +1,772 @@
+---
+title: 'homework #12'
+author: "Maryam NouriAiin"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme:
+      bg: "#ffff"
+      fg: "#0000"
+      primary: "#EA80FC"
+      secondary: "#00DAC6"
+      base_font:
+        google: Lato
+      heading_font:
+        google: Montserrat
+---
+
+# Required libraries
+```{r message=FALSE, warning=FALSE, include=FALSE}
+rm(list = ls())
+library(ggplot2)
+library(MASS)
+library(tidyverse)
+library(readxl)
+library(knitr)
+library(tidyr)
+library(dplyr)
+library(broom)  # For tidy ANOVA outputs
+library(Hmisc)
+library(pastecs)
+library(psych)
+library(skimr)
+library(summarytools)
+
+
+```
+
+# Expolring and cleaning the data set
+
+```{r include=FALSE}
+
+setwd("~/Desktop/githubRepos/NouriAiinBio381")
+dat<- as.data.frame(read_excel("mydata/soildata.xlsx", sheet = "dat"))
+# Display the structure of the 'bumb' dataframe (types and preview of the data)
+str(dat)
+
+# Generate summary statistics for the 'bumb' dataframe
+summary(dat)
+dat %>% colnames()
+
+# Convert character columns to numeric, ignoring non-numeric characters which are coerced to NA
+dat <- dat %>%
+  mutate(across(c(NitN, AmoN, Pho, AL, BO, CO, IR, Man, MO, SO, SU, Zi), as.numeric))
+
+# Replace NA with 0 in all columns
+dat <- dat %>% 
+  mutate(across(everything(), ~replace(., is.na(.), 0)))
+
+# Check the result
+print(dat)
+
+# Replace NA with 0 only in specific columns
+dat <- dat %>%
+  mutate(across(c(NitN, AmoN, Pho, AL, BO, CO, IR, Man, MO, SO, SU, Zi), ~replace(., is.na(.), 0)))
+
+# Check the result
+print(dat)
+
+
+# Check for any conversion issues, such as unexpected NAs
+summary(dat)
+
+
+
+# Now pivot to long format
+long_dat <- dat %>% 
+  pivot_longer(
+    cols = c(Ph, SS, NitN, AmoN, CA, Po, Mag, Pho, AL, BO, CO, IR, Man, MO, SO, SU, Zi),
+    names_to = "element",
+    values_to = "amount"
+  )
+
+Hmisc::describe(long_dat)
+stat.desc(long_dat)
+psych::describe(long_dat)
+psych::describeBy(long_dat, long_dat$element)
+psych::describeBy(long_dat, long_dat$element, mat = TRUE)
+skim(long_dat)
+
+skim_with(integer = list(hist = NULL))
+skim(long_dat)
+
+group_by(long_dat, element) %>%
+ skim()
+
+head(long_dat)
+tail(long_dat)
+print(names(long_dat))
+
+# ------------------------------------------------------------------------------------
+
+long_dat %>%
+  filter(variable == element, amount %in% c("mean", "median", "sd")) %>%
+  ggplot(aes(x = element, y = amount)) +
+  facet_grid(amount ~ ., scales = "free") +
+  geom_col()
+
+# Suppose you want to calculate mean, median, and sd for 'amount' for each 'element'
+stats_dat <- long_dat %>%
+  group_by(element) %>%
+  summarise(
+    mean = mean(amount, na.rm = TRUE),
+    median = median(amount, na.rm = TRUE),
+    sd = sd(amount, na.rm = TRUE)
+  ) %>%
+  pivot_longer(cols = c(mean, median, sd), names_to = "stat", values_to = "value")
+
+# Now plot this data
+ggplot(stats_dat, aes(x = element, y = value)) +
+  geom_col() +
+  facet_grid(stat ~ ., scales = "free")
+
+
+# ------------------------------------------------------------------------------------
+# Calculating statistics grouped by 'element' and 'WormPresence'
+stats_dat <- long_dat %>%
+  group_by(element, WormPresence) %>%
+  summarise(
+    mean = mean(amount, na.rm = TRUE),
+    median = median(amount, na.rm = TRUE),
+    sd = sd(amount, na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  pivot_longer(cols = c(mean, median, sd), names_to = "stat", values_to = "value")
+
+# Now plotting this data
+ggplot(stats_dat, aes(x = element, y = value, fill = WormPresence)) +
+  geom_col(position = position_dodge()) +
+  facet_grid(stat ~ ., scales = "free") +
+  labs(title = "Statistical Measures of Amount by Element and Worm Presence",
+       x = "Element",
+       y = "Statistical Value",
+       fill = "Worm Presence") +
+  theme_minimal()
+
+
+
+# ------------------------------------------------------------------------------------
+# Ensure 'WormPresence' is treated as a categorical variable
+long_dat <- long_dat %>%
+  mutate(WormPresence = factor(WormPresence, labels = c("Absent", "Present")))
+
+# Calculating statistics grouped by 'element' and 'WormPresence'
+stats_dat <- long_dat %>%
+  group_by(element, WormPresence) %>%
+  summarise(
+    mean = mean(amount, na.rm = TRUE),
+    median = median(amount, na.rm = TRUE),
+    sd = sd(amount, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  pivot_longer(cols = c(mean, median, sd), names_to = "stat", values_to = "value")
+
+# Plotting this data with dodged bars
+ggplot(stats_dat, aes(x = element, y = value, fill = WormPresence)) +
+  geom_col(position = position_dodge(width = 0.9)) +  # Adjust dodge width as necessary
+  facet_grid(stat ~ ., scales = "free") +
+  labs(title = "Statistical Measures of Amount by Element and Worm Presence",
+       x = "Element",
+       y = "Statistical Value",
+       fill = "Worm Presence") +
+  theme_minimal()
+# ------------------------------------------------------------------------------------
+# Ensure 'WormPresence' is treated as a categorical variable
+long_dat <- long_dat %>%
+  mutate(WormPresence = factor(WormPresence, labels = c("Absent", "Present")))
+
+# Calculating statistics grouped by 'Plant', 'element', and 'WormPresence'
+stats_dat <- long_dat %>%
+  group_by(Plant, element, WormPresence) %>%
+  summarise(
+    mean = mean(amount, na.rm = TRUE),
+    median = median(amount, na.rm = TRUE),
+    sd = sd(amount, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  pivot_longer(cols = c(mean, median, sd), names_to = "stat", values_to = "value")
+
+# Plotting this data with dodged bars
+ggplot(stats_dat, aes(x = element, y = value, fill = WormPresence)) +
+  geom_col(position = position_dodge(width = 0.9)) +
+  facet_grid(stat ~ Plant, scales = "free") +  # Faceting by 'stat' and 'Plant'
+  labs(title = "Statistical Measures of Amount by Plant, Element, and Worm Presence",
+       x = "Element",
+       y = "Statistical Value",
+       fill = "Worm Presence") +
+  theme_minimal()
+
+
+# ------------------------------------------------------------------------------------
+
+summarytools::descr(long_dat)
+kable(as.data.frame(summarytools::descr(long_dat)))
+
+mydata <- summarytools::descr(long_dat)
+#View(mydata)
+
+summarytools::descr(long_dat, transpose = TRUE)
+
+dfSummary(long_dat)
+
+# ------------------------------------------------------------------------------------
+
+# Ensure 'WormPresence' is treated as a categorical variable
+long_dat <- long_dat %>%
+  mutate(WormPresence = factor(WormPresence, labels = c("Absent", "Present")))
+
+# Function to apply summarytools::descr on subsets
+summarize_data <- function(data) {
+  summarytools::descr(data, stats = "common", transpose = TRUE)
+}
+
+# Apply descr() to each subgroup
+grouped_summaries <- long_dat %>%
+  group_by(element, Plant, WormPresence) %>%
+  group_map(~ summarize_data(.x))
+
+# Optionally, view the results in a more organized format
+# This code will print each table one by one
+lapply(grouped_summaries, function(x) {
+  print(kable(as.data.frame(x)))
+})
+
+# If you use RStudio and want to view the data interactively
+# This would open each table in a separate tab in the Viewer
+# lapply(grouped_summaries, View)
+
+# ------------------------------------------------------------------------------------
+
+
+#List of plants to exclude
+plants_to_exclude <- c("CilantroWhitelace")
+
+long_dat <- long_dat %>%
+  filter(Plant != "CilantroWhitelace")
+# Filtering rows where the element is 'SS'
+ss_data <- long_dat %>%
+  filter(element == "SS")
+
+# View the first few rows of the filtered dataframe
+print(ss_data)
+
+# Viewing the first few rows of the filtered dataframe
+print(head(long_dat))
+
+# View the transformed dataframe
+print(long_dat)
+
+str(long_dat)
+
+dat %>% colnames()
+
+summary_stats <- long_dat %>% 
+      group_by(WormPresence) %>% 
+      summarise(
+        Mean = mean(amount, na.rm = TRUE),
+        SD = sd(amount, na.rm = TRUE),
+        Median = median(amount, na.rm = TRUE),
+        .groups = 'drop'
+      )
+```
+
+
+# element_analysis function
+
+```{r include=FALSE}
+analyze_elements <- function(data) {
+  results <- list()  # Create an empty list to store results
+  
+  # Loop over each element
+  unique_elements <- unique(data$element)
+  for (elem in unique_elements) {
+    # Filter data for the specific element
+    elem_data <- data %>% filter(element == elem)
+    
+    # Calculate summary statistics
+    summary_stats <- elem_data %>% 
+      group_by(WormPresence) %>% 
+      summarise(
+        Mean = mean(amount, na.rm = TRUE),
+        SD = sd(amount, na.rm = TRUE),
+        Median = median(amount, na.rm = TRUE),
+        .groups = 'drop'
+      )
+    
+    #  ANOVA to compare groups
+    if (n_distinct(elem_data$WormPresence) > 1) {  
+      aov_results <- aov(amount ~ WormPresence, data = elem_data)
+      tidy_aov <- tidy(aov_results)
+    } else {
+      tidy_aov <- tibble(term = NA, estimate = NA, statistic = NA, p.value = NA)
+    }
+    
+    # Store results in the list
+    results[[elem]] <- list(
+      SummaryStats = summary_stats,
+      ANOVA = tidy_aov
+    )
+  }
+  
+  return(results)
+}
+```
+
+# Element analysis results
+```{r}
+# Example of how to use the function with your data
+results <- analyze_elements(long_dat)
+
+# Example of how to access results for a specific element
+results[["Ph"]]$SummaryStats
+results[["Ph"]]$ANOVA
+
+results[["SS"]]$SummaryStats
+results[["SS"]]$ANOVA
+
+
+results[["NitN"]]$SummaryStats
+results[["NitN"]]$ANOVA
+
+results[["AmoN"]]$SummaryStats
+results[["AmoN"]]$ANOVA
+
+results[["CA"]]$SummaryStats
+results[["CA"]]$ANOVA
+
+results[["Po"]]$SummaryStats
+results[["Po"]]$ANOVA
+
+results[["Mag"]]$SummaryStats
+results[["Mag"]]$ANOVA
+
+results[["Pho"]]$SummaryStats
+results[["Pho"]]$ANOVA
+
+results[["AL"]]$SummaryStats
+results[["AL"]]$ANOVA
+
+results[["BO"]]$SummaryStats
+results[["BO"]]$ANOVA
+
+results[["CO"]]$SummaryStats
+results[["CO"]]$ANOVA
+
+results[["IR"]]$SummaryStats
+results[["IR"]]$ANOVA
+
+results[["Man"]]$SummaryStats
+results[["Man"]]$ANOVA
+
+results[["MO"]]$SummaryStats
+results[["MO"]]$ANOVA
+
+results[["SO"]]$SummaryStats
+results[["SO"]]$ANOVA
+
+results[["SU"]]$SummaryStats
+results[["SU"]]$ANOVA
+
+
+results[["Zi"]]$SummaryStats
+results[["Zi"]]$ANOVA
+
+
+# ------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------
+
+analyze_elements_detailed <- function(data) {
+  results <- list()  # Create an empty list to store results
+  
+  # Loop over each element
+  unique_elements <- unique(data$element)
+  for (elem in unique_elements) {
+    # Filter data for the specific element
+    elem_data <- data %>% filter(element == elem)
+    
+    # Calculate summary statistics
+    summary_stats <- elem_data %>% 
+      group_by(Plant, WormPresence) %>% 
+      summarise(
+        Mean = mean(amount, na.rm = TRUE),
+        SD = sd(amount, na.rm = TRUE),
+        Median = median(amount, na.rm = TRUE),
+        .groups = 'drop'
+      )
+    
+    # Perform ANOVA to compare groups including interaction terms
+    if (n_distinct(elem_data$WormPresence) > 1 && n_distinct(elem_data$Plant) > 1) {
+      aov_results <- aov(amount ~ WormPresence * Plant, data = elem_data)
+      tidy_aov <- tidy(aov_results)
+    } else {
+      tidy_aov <- tibble(term = NA, estimate = NA, statistic = NA, p.value = NA)
+    }
+    
+    # Store results in the list
+    results[[elem]] <- list(
+      SummaryStats = summary_stats,
+      ANOVA = tidy_aov
+    )
+  }
+  
+  return(results)
+}
+
+# Example of how to use the function with your data
+results_detailed <- analyze_elements_detailed(long_dat)
+
+# Example of how to access results for a specific element
+if (!is.null(results_detailed[["Ph"]])) {
+  print(results_detailed[["Ph"]]$SummaryStats)
+  print(results_detailed[["Ph"]]$ANOVA)
+}
+
+if (!is.null(results_detailed[["SS"]])) {
+  print(results_detailed[["SS"]]$SummaryStats)
+  print(results_detailed[["SS"]]$ANOVA)
+}
+
+if (!is.null(results_detailed[["NitN"]])) {
+  print(results_detailed[["NitN"]]$SummaryStats)
+  print(results_detailed[["NitN"]]$ANOVA)
+}
+
+if (!is.null(results_detailed[["AmoN"]])) {
+  print(results_detailed[["AmoN"]]$SummaryStats)
+  print(results_detailed[["AmoN"]]$ANOVA)
+}
+
+if (!is.null(results_detailed[["CA"]])) {
+  print(results_detailed[["CA"]]$SummaryStats)
+  print(results_detailed[["CA"]]$ANOVA)
+}
+
+
+if (!is.null(results_detailed[["Po"]])) {
+  print(results_detailed[["Po"]]$SummaryStats)
+  print(results_detailed[["Po"]]$ANOVA)
+}
+
+if (!is.null(results_detailed[["Mag"]])) {
+  print(results_detailed[["Mag"]]$SummaryStats)
+  print(results_detailed[["Mag"]]$ANOVA)
+}
+
+if (!is.null(results_detailed[["Pho"]])) {
+  print(results_detailed[["Pho"]]$SummaryStats)
+  print(results_detailed[["Pho"]]$ANOVA)
+}
+
+if (!is.null(results_detailed[["AL"]])) {
+  print(results_detailed[["AL"]]$SummaryStats)
+  print(results_detailed[["AL"]]$ANOVA)
+}
+
+
+if (!is.null(results_detailed[["BO"]])) {
+  print(results_detailed[["BO"]]$SummaryStats)
+  print(results_detailed[["BO"]]$ANOVA)
+}
+
+
+if (!is.null(results_detailed[["CO"]])) {
+  print(results_detailed[["CO"]]$SummaryStats)
+  print(results_detailed[["CO"]]$ANOVA)
+}
+
+if (!is.null(results_detailed[["IR"]])) {
+  print(results_detailed[["IR"]]$SummaryStats)
+  print(results_detailed[["IR"]]$ANOVA)
+}
+
+
+if (!is.null(results_detailed[["Man"]])) {
+  print(results_detailed[["Man"]]$SummaryStats)
+  print(results_detailed[["Man"]]$ANOVA)
+}
+
+if (!is.null(results_detailed[["MO"]])) {
+  print(results_detailed[["MO"]]$SummaryStats)
+  print(results_detailed[["MO"]]$ANOVA)
+}
+
+if (!is.null(results_detailed[["SO"]])) {
+  print(results_detailed[["SO"]]$SummaryStats)
+  print(results_detailed[["SO"]]$ANOVA)
+}
+
+if (!is.null(results_detailed[["SU"]])) {
+  print(results_detailed[["SU"]]$SummaryStats)
+  print(results_detailed[["SU"]]$ANOVA)
+}
+
+if (!is.null(results_detailed[["Zi"]])) {
+  print(results_detailed[["Zi"]]$SummaryStats)
+  print(results_detailed[["Zi"]]$ANOVA)
+}
+# ------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------
+
+# Function to analyze and plot data
+analyze_and_plot_elements <- function(data) {
+  # Loop over each element
+  unique_elements <- unique(data$element)
+  
+  plots <- list()  # List to store ggplot objects
+  
+  for (elem in unique_elements) {
+    # Filter data for the specific element
+    elem_data <- data %>% filter(element == elem)
+    
+    # Calculate summary statistics
+    summary_stats <- elem_data %>% 
+      group_by(Plant, WormPresence) %>% 
+      summarise(
+        Mean = mean(amount, na.rm = TRUE),
+        SD = sd(amount, na.rm = TRUE),
+        .groups = 'drop'
+      ) %>%
+      ungroup() %>%
+      mutate(WormPresence = factor(WormPresence, levels = c(0, 1), labels = c("No Worms", "Worms")))
+
+    # Generate plot
+    p <- ggplot(summary_stats, aes(x = Plant, y = Mean, fill = WormPresence)) +
+      geom_bar(stat = "identity", position = position_dodge(width = 0.8), width = 0.7) +
+      geom_errorbar(aes(ymin = Mean - SD, ymax = Mean + SD), width = 0.25, position = position_dodge(width = 0.8)) +
+      facet_wrap(~WormPresence) +
+      labs(title = paste("Element:", elem),
+           y = "Mean Amount with SD",
+           x = "Plant Type") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+    # Store plot in list
+    plots[[elem]] <- p
+  }
+  
+  return(plots)
+}
+
+# Usage
+plots <- analyze_and_plot_elements(long_dat)
+
+# To display plots for a specific element, e.g., "Ph"
+if (!is.null(plots[["Ph"]])) {
+  print(plots[["Ph"]])
+}
+
+if (!is.null(plots[["SS"]])) {
+  print(plots[["SS"]])
+}
+
+if (!is.null(plots[["NitN"]])) {
+  print(plots[["NitN"]])
+}
+
+if (!is.null(plots[["AmoN"]])) {
+  print(plots[["AmoN"]])
+}
+
+if (!is.null(plots[["CA"]])) {
+  print(plots[["CA"]])
+}
+
+if (!is.null(plots[["Po"]])) {
+  print(plots[["Po"]])
+}
+
+if (!is.null(plots[["Mag"]])) {
+  print(plots[["Mag"]])
+}
+
+if (!is.null(plots[["Pho"]])) {
+  print(plots[["Pho"]])
+}
+
+if (!is.null(plots[["AL"]])) {
+  print(plots[["AL"]])
+}
+
+if (!is.null(plots[["BO"]])) {
+  print(plots[["BO"]])
+}
+
+if (!is.null(plots[["CO"]])) {
+  print(plots[["CO"]])
+}
+
+if (!is.null(plots[["IR"]])) {
+  print(plots[["IR"]])
+}
+
+if (!is.null(plots[["Man"]])) {
+  print(plots[["MAn"]])
+}
+
+if (!is.null(plots[["MO"]])) {
+  print(plots[["MO"]])
+}
+
+if (!is.null(plots[["SO"]])) {
+  print(plots[["SO"]])
+}
+
+if (!is.null(plots[["SU"]])) {
+  print(plots[["SU"]])
+}
+
+if (!is.null(plots[["Zi"]])) {
+  print(plots[["Zi"]])
+}
+# ------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------
+# Function to plot the summary statistics and ANOVA results
+plot_element_results <- function(results) {
+  plots <- list()  # List to store ggplot objects
+
+  # Loop over each element in the results list
+  for (elem in names(results)) {
+    summary_stats <- results[[elem]]$SummaryStats
+    aov_results <- results[[elem]]$ANOVA
+
+    # Ensure WormPresence is a factor with proper labels
+    summary_stats$WormPresence <- factor(summary_stats$WormPresence, levels = c(0, 1), labels = c("No Worm", "Worm"))
+
+    # Create the plot for summary statistics
+    p <- ggplot(summary_stats, aes(x = Plant, y = Mean, fill = WormPresence)) +
+      geom_bar(stat = "identity", position = position_dodge(), width = 0.7, color="black",size=1) +
+      geom_errorbar(aes(ymin = Mean - SD, ymax = Mean + SD), width = 0.25, position = position_dodge(0.7)) +
+geom_point(position = position_jitter(width = 0.2, height = 0), color = "black", size = 1)+
+      facet_wrap(~WormPresence) +
+      labs(title = paste("Element:", elem, "\nANOVA p-value:", min(aov_results$p.value, na.rm = TRUE)),
+           x = "Plant Type",
+           y = "Mean Amount with SD",
+           fill = "Worm Presence") +
+      scale_fill_manual(values = c("No Worm" = "thistle", "Worm" = "goldenrod"),  # Specifying actual colors for "No Worm" and "Worm"
+                        labels = c("No Worm", "Worm")) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+    # Store the plot
+    plots[[elem]] <- p
+  }
+
+  return(plots)
+}
+
+# Rerun the plotting function with the corrected settings
+plots <- plot_element_results(results_detailed)
+
+
+
+
+# Display plot for a specific element, e.g., "Ph"
+if (!is.null(plots[["Ph"]])) {
+  print(plots[["Ph"]])
+}
+
+
+if (!is.null(plots[["SS"]])) {
+  print(plots[["SS"]])
+}
+
+
+if (!is.null(plots[["NitN"]])) {
+  print(plots[["NitN"]])
+}
+
+
+if (!is.null(plots[["AmoN"]])) {
+  print(plots[["AmoN"]])
+}
+
+
+if (!is.null(plots[["CA"]])) {
+  print(plots[["CA"]])
+}
+
+
+
+if (!is.null(plots[["Po"]])) {
+  print(plots[["Po"]])
+}
+
+
+
+if (!is.null(plots[["Mag"]])) {
+  print(plots[["MAg"]])
+}
+
+
+if (!is.null(plots[["Pho"]])) {
+  print(plots[["Pho"]])
+}
+
+
+if (!is.null(plots[["AL"]])) {
+  print(plots[["AL"]])
+}
+
+
+
+if (!is.null(plots[["BO"]])) {
+  print(plots[["BO"]])
+}
+
+
+if (!is.null(plots[["CO"]])) {
+  print(plots[["CO"]])
+}
+
+
+if (!is.null(plots[["IR"]])) {
+  print(plots[["IR"]])
+}
+
+
+if (!is.null(plots[["Man"]])) {
+  print(plots[["Man"]])
+}
+
+
+if (!is.null(plots[["MO"]])) {
+  print(plots[["MO"]])
+}
+
+
+if (!is.null(plots[["SO"]])) {
+  print(plots[["SO"]])
+}
+
+
+if (!is.null(plots[["SO"]])) {
+  print(plots[["SO"]])
+}
+
+
+
+
+if (!is.null(plots[["SU"]])) {
+  print(plots[["SU"]])
+}
+
+if (!is.null(plots[["Zi"]])) {
+  print(plots[["Zi"]])
+}
+
+
+
+
+
+# Display the plot for 'Zi', if it exists
+if (!is.null(plots[["Zi"]])) {
+  print(plots[["Zi"]])
+} else {
+  print("No plot available for 'Zi'. Check if 'Zi' is a valid element in your results.")
+}
+
+
+```
