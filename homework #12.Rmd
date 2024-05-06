@@ -46,79 +46,80 @@ hist <- ggplot(data = penguins, aes(x = flipper_length_mm)) +
         panel.grid.minor = element_line(color = "white", size = 0.25))
 
 hist
+```
 
-# # Convert ggplot to interactive plot
-# hist_interactive  <- ggplotly(hist)
-# 
-# hist_interactive 
+## Convert ggplot to interactive plot
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+hist_interactive  <- ggplotly(hist)
+hist_interactive
 
 ```
 
-## Interactive plot
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-# Initial bin width
-initial_binwidth <- 5
 
-# Function to create histogram
-create_histogram <- function(binwidth) {
-  ggplot(data = penguins, aes(x = flipper_length_mm)) +
-    geom_histogram(aes(fill = species), 
-                   color = "black",
-                   alpha = 0.5, 
-                   position = "identity",
-                   binwidth = binwidth) +
-    scale_fill_manual(values = c("darkblue", "red", "cyan4")) +
-    labs(x = "Flipper length (mm)",
-         y = "Frequency",
-         title = "Flipper ") +
-    theme(panel.background = element_rect(fill = "lightgray"),
-          panel.grid.major = element_line(color = "white", size = 0.5),
-          panel.grid.minor = element_line(color = "white", size = 0.25))
-}
-
-# Create initial plot
-histogram <- create_histogram(initial_binwidth)
-
-# Convert ggplot to plotly
-histogram_plotly <- ggplotly(histogram)
-
-# Add slider for bin width
-histogram_plotly <- histogram_plotly %>%
-  layout(
-    updatemenus = list(
-      list(
-        active = 0,
-        buttons = list(
-          list(
-            label = "Bin Width",
-            method = "update",
-            args = list(list(visible = c(TRUE, FALSE)),
-                        list(title = "Bin Width",
-                             xaxis = list(title = "Flipper length (mm)"),
-                             yaxis = list(title = "Frequency")))),
-          list(
-            label = "5",
-            method = "update",
-            args = list(list(visible = c(TRUE, FALSE)),
-                        list(title = "Bin Width",
-                             xaxis = list(title = "Flipper length (mm)"),
-                             yaxis = list(title = "Frequency")),
-                        list(binwidth = 5))),
-          list(
-            label = "10",
-            method = "update",
-            args = list(list(visible = c(TRUE, FALSE)),
-                        list(title = "Bin Width",
-                             xaxis = list(title = "Flipper length (mm)"),
-                             yaxis = list(title = "Frequency")),
-                        list(binwidth = 10)))
-        )
-      )
-    )
-  )
-
-# Show plot
-histogram_plotly
+# ```{r echo=FALSE, message=FALSE, warning=FALSE}
+# # Initial bin width
+# initial_binwidth <- 5
+# 
+# # Function to create histogram
+# create_histogram <- function(binwidth) {
+#   ggplot(data = penguins, aes(x = flipper_length_mm)) +
+#     geom_histogram(aes(fill = species), 
+#                    color = "black",
+#                    alpha = 0.5, 
+#                    position = "identity",
+#                    binwidth = binwidth) +
+#     scale_fill_manual(values = c("darkblue", "red", "cyan4")) +
+#     labs(x = "Flipper length (mm)",
+#          y = "Frequency",
+#          title = "Flipper ") +
+#     theme(panel.background = element_rect(fill = "lightgray"),
+#           panel.grid.major = element_line(color = "white", size = 0.5),
+#           panel.grid.minor = element_line(color = "white", size = 0.25))
+# }
+# 
+# # Create initial plot
+# histogram <- create_histogram(initial_binwidth)
+# 
+# # Convert ggplot to plotly
+# histogram_plotly <- ggplotly(histogram)
+# 
+# # Add slider for bin width
+# histogram_plotly <- histogram_plotly %>%
+#   layout(
+#     updatemenus = list(
+#       list(
+#         active = 0,
+#         buttons = list(
+#           list(
+#             label = "Bin Width",
+#             method = "update",
+#             args = list(list(visible = c(TRUE, FALSE)),
+#                         list(title = "Bin Width",
+#                              xaxis = list(title = "Flipper length (mm)"),
+#                              yaxis = list(title = "Frequency")))),
+#           list(
+#             label = "5",
+#             method = "update",
+#             args = list(list(visible = c(TRUE, FALSE)),
+#                         list(title = "Bin Width",
+#                              xaxis = list(title = "Flipper length (mm)"),
+#                              yaxis = list(title = "Frequency")),
+#                         list(binwidth = 5))),
+#           list(
+#             label = "10",
+#             method = "update",
+#             args = list(list(visible = c(TRUE, FALSE)),
+#                         list(title = "Bin Width",
+#                              xaxis = list(title = "Flipper length (mm)"),
+#                              yaxis = list(title = "Frequency")),
+#                         list(binwidth = 10)))
+#         )
+#       )
+#     )
+#   )
+# 
+# # Show plot
+# #histogram_plotly
 ```
 ## Scatter plot
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -186,18 +187,8 @@ stat_plot  <- stat_plot  +
   )
 # stat_plot 
 
-stat_plot  <- stat_plot   +
-  theme(
-    axis.ticks = element_blank(),
-    axis.line = element_line(colour = "grey50"),
-    panel.grid = element_line(color = "#b4aea9"),
-    panel.grid.minor = element_blank(),
-    panel.grid.major.x = element_blank(),
-    panel.grid.major.y = element_line(linetype = "dashed"),
-    panel.background = element_rect(fill = "#fbf9f4", color = "#fbf9f4"),
-    plot.background = element_rect(fill = "#fbf9f4", color = "#fbf9f4")
-  )
-stat_plot + facet_wrap(~species, scales = "free_y")
+#stat_plot  <- stat_plot   
+#stat_plot + facet_wrap(~species, scales = "free_y")
 ```
 
 
@@ -206,17 +197,10 @@ stat_plot + facet_wrap(~species, scales = "free_y")
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 point + hist + stat_plot + plot_layout(ncol = 1, nrow = 3)
 
-stat_plot + {
-  hist + 
-    point + 
-    plot_layout(ncol = 1)
-} +
-  plot_layout(ncol = 1, heights = c(2,1,1))
-
-(stat_plot / hist) | point
+hist | point
 
 
-(stat_plot | hist) / point
+hist / point
 ```
 
 
