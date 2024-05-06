@@ -5,7 +5,7 @@ library(ggplot2)
 library(ggthemes)
 library(patchwork)
 
-### ggplot
+## ggplot
 # P1 <- ggplot(data=<DATA>) +
 #   aes(<MAPPING>) +
 #   <GEOM_FUNCTION(aes(<MAPPING>),
@@ -14,122 +14,103 @@ library(patchwork)
 #                    <FACET_FUNCTION>
 # print(p1)
 
-ggsave(plot=p1, 
-       filename="MyPlot",
-       idth=5,
-       height=3,
-       units="in",
-       device="pdf")
+# ggsave(plot=p1, 
+#        filename="MyPlot",
+#        idth=5,
+#        height=3,
+#        units="in",
+#        device="pdf")
 
 # Basic Graph Type
 d <- mpg # use built in mpg data frame
 str(d)
 table(d$fl) 
 
-# basic histogram
+# basic histogram plot
 ggplot(data=d) +
   aes(x=hwy) +
   geom_histogram()
 
-# add color
 ggplot(data=d) +
   aes(x=hwy) +
   geom_histogram(fill="khaki",color="black")
 
-ggplot(data=d) +
-  aes(x=hwy, fill="red") +
-  geom_histogram()
 
-
-
-ggplot(data=d) +
-  aes(x=hwy, fill="green") +
-  geom_histogram()
-
-
-ggplot(data=d) +
-  aes(x=hwy, fill=I("green"), color=I("black")) +
-  geom_histogram()
-
-
-
-
+# # basic density plot
 ggplot(data=d) +
   aes(x=hwy) +
-  geom_density(fill= "mintcream", color="black")
+  geom_density(fill="mintcream",color="blue")
 
 
+# basic scatter plot
 ggplot(data=d) +
-  aes(x=displ, y=hwy) +
-  geom_point() +
-  geom_smooth()
-  
-
-ggplot(data=d) +
-  aes(x=displ, y=hwy) +
-  geom_point() +
-  geom_smooth(method="lm", col="red")
-
-
-ggplot(data=d) +
-  aes(x=displ, y=hwy) +
+  aes(x=displ,y=hwy) +
   geom_point() +
   geom_smooth() +
-  geom_smooth(method="lm", col="red")
+  geom_smooth(method="lm",col="red")
 
+# add a smoother
+ggplot(data=d) +
+  aes(x=displ,y=hwy) +
+  geom_point() +
+  geom_smooth()
+
+# add a linear regression line
+ggplot(data=d) +
+  aes(x=displ,y=hwy) +
+  geom_point() +
+  geom_smooth(method = "lm",col="red")
+
+
+# basic boxplot
 ggplot(data=d) +
   aes(x=fl, y=cty) +
-  geom_boxplot() 
+  geom_boxplot()
 
-
+# basic boxplot
 ggplot(data=d) +
   aes(x=fl, y=cty) +
-  geom_boxplot(fill="thistle") 
+  geom_boxplot(fill="thistle")
 
+# basic barplot (long format)
 
 ggplot(data=d) +
-  aes(x=fl, y=cty, fill=fl) +
-  geom_boxplot() 
+  aes(x=fl) +
+  geom_bar(fill="thistle",color="black")
+
+# bar plot with specified counts or meansw
+x_treatment <- c("Control","Low","High")
+y_response <- c(12,2.5,22.9)
+summary_data <- data.frame(x_treatment,y_response)
+
+ggplot(data=summary_data) +
+  aes(x=x_treatment,y=y_response) +
+  geom_col(fill=c("grey50","goldenrod","goldenrod"),col="black")
+
+# basic curves and functions
+my_vec <- seq(1,100,by=0.1)
+
+# plot simple mathematical functions
+d_frame <- data.frame(x=my_vec,y=sin(my_vec))
+ggplot(data=d_frame) +
+  aes(x=x,y=y) +
+  geom_line()
+
+# plot probability functions
+# random numbers with gamma distribution
+d_frame <- data.frame(x=my_vec,y=dgamma(my_vec,shape=5, scale=3))
+ggplot(data=d_frame) +
+  aes(x=x,y=y) +
+  geom_line()
+
+# plot user-defined functions
+my_fun <- function(x) sin(x) + 0.1*x
+d_frame <- data.frame(x=my_vec,y=my_fun(my_vec))
+ggplot(data=d_frame) +
+  aes(x=x,y=y) +
+  geom_line()
 
 
-# try new font 
-
-p1 <- ggplot(data = d) +
-  aes(x=displ, y=cty)+
-  geom_point()
-print(p1)
-
-p1 + theme_classic()
-p1 + theme_linedraw()
-p1+ theme_dark()
-p1+ theme_base()
-p1+ theme_void()
-p1+ theme_solarized()
-p1+ theme_solarized_2()
-p1+ theme_economist()
-p1+ theme_economist_white()
-p1+ theme_grey()
 
 
-p1+ theme_classic(base_size = 40, base_family = "serif")
-
-p2 <- ggplot(data=d) +
-  aes(x=fl, fill= fl) +
-  geom_bar()
-print(p2)
-
-
-p2 + coord_flip()+
-  theme_grey(base_size = 20, base_family = "sans")
-geom_bar()
-print(p2)
-
-p1 <- ggplot(data=d, mapping= aes(x=displ, y= cty)) +
-  geom_point(size=7, shape=21, color="black", fill= "steelblue") +
-  labs(title = "My graph title",
-       subtitle = "an extended",
-       x="my x axix",
-       y="my y axis")+
-  xlim(0,4) + ylim(0,20)
-print(p1)
  

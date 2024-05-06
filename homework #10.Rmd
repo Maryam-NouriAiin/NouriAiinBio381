@@ -34,6 +34,21 @@ count_zeroes <- function(vec) {
 
 count_zeroes (a)
 
+# Or Gotelli's way
+dicot <- c(1,0,0,1)
+dicot==0
+sum(dicot==0)
+sum(dicot)
+# this is not working, he will fix it later
+
+count <- 0
+for (i in seq_along(dicot)){
+    count <- count + 1 + dicot[i]==0
+  }
+
+print(count)
+
+
 
 ```
 
