@@ -7,6 +7,9 @@ output:
     highlight: github
 ---
 
+
+## Advanced ggplotting
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(ggstatsplot)
 library(palmerpenguins)
@@ -21,7 +24,7 @@ data("penguins", package = "palmerpenguins")
 penguins <- drop_na(penguins)
 ```
 
-## Histogram
+## Exploring histogram
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 hist <- ggplot(data = penguins, aes(x = flipper_length_mm)) +
@@ -46,6 +49,7 @@ hist
 ```
 
 ## Convert ggplot to interactive plot
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 hist_interactive  <- ggplotly(hist)
 hist_interactive
@@ -120,7 +124,7 @@ hist_interactive
 # #histogram_plotly
 ```
 
-## Scatter plot
+## Exploring scatter plot
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -199,14 +203,21 @@ stat_plot  <- stat_plot  +
 ```
 
 
-## Multiple plots in ggplot2 with patchwork
+# Multiple plots in ggplot2 with patchwork
+
+## Exploring different layouts
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 point + hist + stat_plot + plot_layout(ncol = 1, nrow = 3)
+```
 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 hist | point
+```
 
 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 hist / point
 ```
 
