@@ -41,7 +41,11 @@ hist <- ggplot(data = penguins, aes(x = flipper_length_mm)) +
        title = "Flipper") +
   theme(panel.background = element_rect(fill = "lightgray"),  # Add background color
         panel.grid.major = element_line(color = "white", size = 0.5),  # Add grid lines
-        panel.grid.minor = element_line(color = "white", size = 0.25))
+        panel.grid.minor = element_line(color = "white", size = 0.25),
+        plot.title = element_text(size = 18, face = "bold", color = "red"),
+        legend.title=element_text(size=10, face = "italic", color = "blue"), 
+        legend.text=element_text(size=6, color="darkorange"),
+        axis.title = element_text(face = "bold", color="purple"))
 
 hist
 ```
